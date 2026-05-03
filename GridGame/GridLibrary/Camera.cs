@@ -116,14 +116,4 @@ public class Camera(GraphicsDevice graphicsDevice)
         if (viewBounds.Right > CameraBounds.Right)
             Position.X = CameraBounds.Right - _graphicsDevice.Viewport.Width;
     }
-
-    private bool PositionIsOutOfBounds()
-    {
-        Rectangle screenBounds = _graphicsDevice.Viewport.Bounds;
-        return 
-            screenBounds.Top < CameraBounds.Top ||
-            screenBounds.Bottom > CameraBounds.Bottom ||
-            screenBounds.Left < CameraBounds.Left ||
-            screenBounds.Right > CameraBounds.Right;
-    }
 }
