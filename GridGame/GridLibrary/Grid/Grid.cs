@@ -95,7 +95,7 @@ public class Grid
 
     public void MoveCursorDown(Camera camera)
     {
-        if (_cursorPosition.Y < Rows)
+        if (_cursorPosition.Y < (Rows - 1))
         {
             _cursorPosition = new Point
             {
@@ -108,7 +108,7 @@ public class Grid
 
     public void MoveCursorRight(Camera camera)
     {
-        if (_cursorPosition.X < Columns)
+        if (_cursorPosition.X < (Columns - 1))
         {
             _cursorPosition = new Point
             {
