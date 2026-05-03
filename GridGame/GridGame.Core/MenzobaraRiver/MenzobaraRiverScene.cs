@@ -153,7 +153,7 @@ public class MenzobaraRiverScene(
         }
         else
         {
-            TileInfo info = _tileInfos[(TileType)_grid.ActiveTile.TileType];
+            TileInfo info = _tileInfos[tileType];
             _spriteBatch.DrawString(_font, info.ToString(), Vector2.Zero, Color.White);
         }
         _spriteBatch.End();
