@@ -7,7 +7,6 @@ public static class SpriteBatchExtensions
 {
     public static void Draw(this SpriteBatch spriteBatch, Grid grid, bool drawGridOverlay = false)
     {
-        // _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: _camera.GetViewMatrix());
         Vector2 scale = Vector2.One * grid.Scalar;
         foreach(GridTile gridTile in grid.Tiles)
         {
@@ -26,9 +25,8 @@ public static class SpriteBatchExtensions
             if (drawGridOverlay)
             {
                 spriteBatch.Draw(
-                    texture: grid.GridOverlay.Texture,
+                    textureRegion: grid.GridOverlay,
                     position,
-                    grid.GridOverlay.SourceRectangle,
                     Color.White * 0.25f,
                     rotation: 0,
                     origin: Vector2.Zero,
