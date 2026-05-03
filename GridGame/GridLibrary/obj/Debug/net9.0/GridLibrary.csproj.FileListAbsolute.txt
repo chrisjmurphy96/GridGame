@@ -1,0 +1,12 @@
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\bin\Debug\net9.0\GridLibrary.deps.json
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\bin\Debug\net9.0\GridLibrary.dll
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\bin\Debug\net9.0\GridLibrary.pdb
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\GridLibrary.csproj.AssemblyReference.cache
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\GridLibrary.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\GridLibrary.AssemblyInfoInputs.cache
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\GridLibrary.AssemblyInfo.cs
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\GridLibrary.csproj.CoreCompileInputs.cache
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\GridLibrary.dll
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\refint\GridLibrary.dll
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\GridLibrary.pdb
+c:\Users\Chris\Desktop\portfolio\grid-system\GridGame\GridGame\GridLibrary\obj\Debug\net9.0\ref\GridLibrary.dll

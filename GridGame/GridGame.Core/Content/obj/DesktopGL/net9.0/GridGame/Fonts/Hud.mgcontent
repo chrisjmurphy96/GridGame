@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>c:/Users/Chris/Desktop/portfolio/grid-system/GridGame/GridGame/GridGame.Core/Content/Fonts/Hud.spritefont</SourceFile>
+  <SourceTime>2026-04-27T10:26:21.8431695-05:00</SourceTime>
+  <DestFile>c:/Users/Chris/Desktop/portfolio/grid-system/GridGame/GridGame/GridGame.Core/Content/bin/DesktopGL/GridGame/Fonts/Hud.xnb</DestFile>
+  <DestTime>2026-04-27T10:58:57.7367872-05:00</DestTime>
+  <Importer>FontDescriptionImporter</Importer>
+  <ImporterTime>2025-10-20T09:25:32-05:00</ImporterTime>
+  <Processor>FontDescriptionProcessor</Processor>
+  <ProcessorTime>2025-10-20T09:25:32-05:00</ProcessorTime>
+  <Parameters>
+    <Key>PremultiplyAlpha</Key>
+    <Value>True</Value>
+  </Parameters>
+  <Parameters>
+    <Key>TextureFormat</Key>
+    <Value>Compressed</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>

@@ -1,0 +1,15 @@
+{
+	"identifier": "Menzobara_River",
+	"uniqueIdentifer": "234c2e40-21a0-11f1-8a37-9f201946bb97",
+	"x": 272,
+	"y": -336,
+	"width": 960,
+	"height": 544,
+	"bgColor": "#696A79",
+	"neighbourLevels": [],
+	"customFields" : {},
+	"layers": [
+		"Tiles.png"
+	],
+	"entities" : {}
+}
