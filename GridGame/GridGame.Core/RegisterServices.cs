@@ -1,7 +1,6 @@
 using GridGame.Core.MenzobaraRiver;
 using GridLibrary;
 using GridLibrary.Builder;
-using GridLibrary.Graphics;
 using GridLibrary.Ldtk;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework.Graphics;

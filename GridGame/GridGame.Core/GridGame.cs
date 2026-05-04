@@ -3,10 +3,7 @@ using GridGame.Core.Localization;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace GridGame.Core
 {

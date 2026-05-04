@@ -34,18 +34,10 @@ public class MenzobaraRiverScene(
     private readonly Camera _camera = camera;
     private readonly KeyboardInfo _keyboardInfo = keyboardInfo;
     private readonly AssetManager _assetManager = assetManager;
+    private readonly FrameCounter _frameCounter = new();
     private Grid<TileType> _grid;
     private SpriteFont _font;
     private TileInfo _activeTileInfo;
-    private FrameCounter _frameCounter = new();
-
-    private Dictionary<TileType, TileInfo> _tileInfos = new()
-    {
-        [TileType.Forest] = new TileInfo { DodgeModifier = 20 },
-        [TileType.River] = new TileInfo { CanWalk = false },
-        [TileType.Bridge] = new TileInfo(),
-        [TileType.Grass] = new TileInfo()
-    };
 
     private static readonly TimeSpan MoveDelay = TimeSpan.FromMilliseconds(100);
     private bool _showGrid = false;
@@ -134,7 +126,7 @@ public class MenzobaraRiverScene(
             _grid.MoveCursorLeft(_camera);
         }
         TileType tileType = _grid.ActiveTile.TileType;
-        _activeTileInfo = _tileInfos[tileType];
+        _activeTileInfo = tileType.GetTileInfo();
         _grid.Update(gameTime);
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
