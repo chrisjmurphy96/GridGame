@@ -116,7 +116,7 @@
 		{
 			"__cWid": 4,
 			"__cHei": 4,
-			"identifier": "Placeholder_atlas",
+			"identifier": "Menzobara_River",
 			"uid": 2,
 			"relPath": "placeholder-atlas.png",
 			"embedAtlas": null,
@@ -127,16 +127,19 @@
 			"padding": 0,
 			"tags": [],
 			"tagsSourceEnumUid": 4,
-			"enumTags": [ { "enumValueId": "Tree", "tileIds": [] }, { "enumValueId": "River", "tileIds": [] }, { "enumValueId": "Bridge", "tileIds": [] }, { "enumValueId": "Grass", "tileIds": [] } ],
-			"customData": [ { "tileId": 0, "data": "{\n  \"dodgeModifier\": 20\n}" }, { "tileId": 1, "data": "{\n  \"canWalk\": false\n}" } ],
+			"enumTags": [ { "enumValueId": "Forest", "tileIds": [0] }, { "enumValueId": "River", "tileIds": [1] }, { "enumValueId": "Bridge", "tileIds": [4] }, { "enumValueId": "Grass", "tileIds": [5] } ],
+			"customData": [{
+				"tileId": 1,
+				"data": "{\n  \"delayInMilliseconds\": 500,\n  \"frameSources\": [{\n    \"x\": 16,\n    \"y\": 0\n  }, {\n    \"x\": 16,\n    \"y\": 32\n  }]\n}"
+			}],
 			"savedSelections": [],
-			"cachedPixelData": { "opaqueTiles": "1100110000000000", "averageColors": "f6b3f59e958e658ef863f8d4657e34ad20000000000000000000000000000000" }
+			"cachedPixelData": { "opaqueTiles": "1100110001000000", "averageColors": "f6b3f69f958e658ef863f8d4657e34ad3000f69f000000000000000000000000" }
 		}
-	], "enums": [{ "identifier": "Atlas", "uid": 4, "values": [
-		{ "id": "Tree", "tileRect": { "tilesetUid": 2, "x": 0, "y": 0, "w": 16, "h": 16 }, "color": 12470831 },
-		{ "id": "River", "tileRect": { "tilesetUid": 2, "x": 16, "y": 0, "w": 16, "h": 16 }, "color": 14120515 },
-		{ "id": "Bridge", "tileRect": { "tilesetUid": 2, "x": 0, "y": 16, "w": 16, "h": 16 }, "color": 15389866 },
-		{ "id": "Grass", "tileRect": { "tilesetUid": 2, "x": 16, "y": 16, "w": 16, "h": 16 }, "color": 14984818 }
+	], "enums": [{ "identifier": "TileTypes", "uid": 4, "values": [
+		{ "id": "Forest", "tileRect": { "tilesetUid": 2, "x": 0, "y": 0, "w": 16, "h": 16 }, "color": 2513986 },
+		{ "id": "River", "tileRect": { "tilesetUid": 2, "x": 16, "y": 0, "w": 16, "h": 16 }, "color": 2943221 },
+		{ "id": "Bridge", "tileRect": { "tilesetUid": 2, "x": 0, "y": 16, "w": 16, "h": 16 }, "color": 7552569 },
+		{ "id": "Grass", "tileRect": { "tilesetUid": 2, "x": 16, "y": 16, "w": 16, "h": 16 }, "color": 6539085 }
 	], "iconTilesetUid": 2, "externalRelPath": null, "externalFileChecksum": null, "tags": [] }], "externalEnums": [], "levelFields": [] },
 	"levels": [
 		{

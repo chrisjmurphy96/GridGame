@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using GridGame.Core.Tiles;
 using GridLibrary;
@@ -33,19 +34,21 @@ public class MenzobaraRiverScene(
     private readonly Camera _camera = camera;
     private readonly KeyboardInfo _keyboardInfo = keyboardInfo;
     private readonly AssetManager _assetManager = assetManager;
-    private Grid _grid;
+    private Grid<TileType> _grid;
     private SpriteFont _font;
+    private TileInfo _activeTileInfo;
+    private FrameCounter _frameCounter = new();
 
-    private static readonly TimeSpan MoveDelay = TimeSpan.FromMilliseconds(100);
-    private bool _showGrid = false;
-
-    private readonly Dictionary<TileType, TileInfo> _tileInfos = new()
+    private Dictionary<TileType, TileInfo> _tileInfos = new()
     {
-        [TileType.Forest] = new TileInfo { DodgeChanceModifier = 20 },
+        [TileType.Forest] = new TileInfo { DodgeModifier = 20 },
         [TileType.River] = new TileInfo { CanWalk = false },
         [TileType.Bridge] = new TileInfo(),
         [TileType.Grass] = new TileInfo()
     };
+
+    private static readonly TimeSpan MoveDelay = TimeSpan.FromMilliseconds(100);
+    private bool _showGrid = false;
 
     public override void Initialize()
     {
@@ -55,9 +58,12 @@ public class MenzobaraRiverScene(
 
     public override void LoadContent()
     {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
         _font = _assetManager.Load<MenzobaraRiverScene, SpriteFont>(Path.Combine("Fonts", "Hud"));
         LdtkProjectFile ldtkProjectFile = _ldtkImporter.Import(Path.Combine("Images", "basic-map.ldtk"));
-        LdtkLevel level = ldtkProjectFile.GetLevelByName("Menzobara_River");
+        string levelName = "Menzobara_River";
+        LdtkLevel level = ldtkProjectFile.GetLevelByName(levelName);
         LdtkLayerInstance layerInstance = level.GetDefaultLayer();
         string atlasName = Path.GetFileNameWithoutExtension(layerInstance.TilesetRelPath);
         Texture2D atlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", atlasName));
@@ -81,7 +87,7 @@ public class MenzobaraRiverScene(
             SourceRectangle = new Rectangle(x: 0, y: 32, width: 16, height: 16)
         };
 
-        _grid = new Grid(map: level, atlas, gridOverlayTexture, scalar: 4, cursorSprite);
+        _grid = new Grid<TileType>(ldtkProjectFile, levelName, atlas, gridOverlayTexture, scalar: 4, cursorSprite);
         
         _camera.CameraBounds = new()
         {
@@ -90,6 +96,8 @@ public class MenzobaraRiverScene(
             Width = level.LayerWidth * _grid.Scalar,
             Height = level.LayerHeight * _grid.Scalar
         };
+        stopwatch.Stop();
+        Debug.WriteLine(stopwatch.Elapsed);
     }
 
     public override void UnloadContent()
@@ -125,6 +133,9 @@ public class MenzobaraRiverScene(
             _keyboardInfo.ResetKeyHold(Keys.Left);
             _grid.MoveCursorLeft(_camera);
         }
+        TileType tileType = _grid.ActiveTile.TileType;
+        _activeTileInfo = _tileInfos[tileType];
+        _grid.Update(gameTime);
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
         // if (_keyboardInfo.WasKeyJustPressed(Keys.OemPlus) ||
@@ -133,29 +144,26 @@ public class MenzobaraRiverScene(
         // if (_keyboardInfo.WasKeyJustPressed(Keys.OemMinus) ||
         //     _keyboardInfo.WasKeyJustPressed(Keys.Subtract))
         //     _camera.ZoomOut();
-        // if (_keyboardInfo.WasKeyJustPressed(Keys.G))
-        // {
-        //     ToggleGrid();
-        // }
+        if (_keyboardInfo.WasKeyJustPressed(Keys.G))
+        {
+            ToggleGrid();
+        }
     }
 
     public override void Draw(GameTime gameTime)
     {
         _graphicsDevice.Clear(Color.MonoGameOrange);
+
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: _camera.GetViewMatrix());
-        _spriteBatch.Draw(_grid);
+        _spriteBatch.Draw(_grid, _showGrid);
         _spriteBatch.End();
+
         _spriteBatch.Begin(samplerState: SamplerState.AnisotropicClamp);
-        TileType tileType = (TileType)_grid.ActiveTile.TileType;
-        if (!Enum.IsDefined<TileType>(tileType))
-        {
-            _spriteBatch.DrawString(_font, $"{_grid.ActiveTile.TileType} is not a valid {nameof(TileType)}", Vector2.Zero, Color.White);
-        }
-        else
-        {
-            TileInfo info = _tileInfos[tileType];
-            _spriteBatch.DrawString(_font, info.ToString(), Vector2.Zero, Color.White);
-        }
+        _spriteBatch.DrawString(_font, _activeTileInfo.ToString(), Vector2.Zero, Color.White);
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _frameCounter.Update(deltaTime);
+        string fps = string.Format("FPS: {0}", (int)_frameCounter.AverageFramesPerSecond);
+        _spriteBatch.DrawString(_font, fps, new Vector2(x: 500, y: 0), Color.White);
         _spriteBatch.End();
     }
 

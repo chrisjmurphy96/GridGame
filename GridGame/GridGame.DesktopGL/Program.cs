@@ -1,4 +1,6 @@
-﻿using GridGame.Core;
+﻿using System.Diagnostics;
+using System.Timers;
+using GridGame.Core;
 
 internal class Program
 {
@@ -9,9 +11,6 @@ internal class Program
     /// <param name="args">Command-line arguments passed to the application.</param>
     private static void Main(string[] args)
     {
-        // using var game = new GridGame.Core.GridGame();
-        // game.Run();
-        // GridGame.Core.GridGame.Instance.Run();
         RegisterServices.Register().Run();
     }
 }

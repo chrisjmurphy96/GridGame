@@ -17,5 +17,5 @@ public struct LdtkGridTile
     public readonly int TextureOriginY => Src[1];
 
     [JsonPropertyName("t")]
-    public int TileType { get; set; }
+    public int TileId { get; set; }
 }

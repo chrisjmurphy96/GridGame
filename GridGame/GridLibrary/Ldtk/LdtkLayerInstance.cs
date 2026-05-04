@@ -6,6 +6,10 @@ namespace GridLibrary.Ldtk;
 public struct LdtkLayerInstance
 {
     public Guid IID { get; set; }
+    [JsonPropertyName("__identifier")]
+    public string Name { get; set; }
+    [JsonPropertyName("__tilesetDefUid")]
+    public int TilesetDefUid { get; set; }
     public LdtkGridTile[] GridTiles { get; set; }
     [JsonPropertyName("__tilesetRelPath")]
     public string TilesetRelPath { get; set; }
