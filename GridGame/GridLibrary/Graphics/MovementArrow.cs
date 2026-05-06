@@ -99,8 +99,10 @@ public class MovementArrow<T> where T : struct, Enum
         {
             Path = GenerateShortestPath(end);
         }
-
-        Path.Add(end);
+        else
+        {
+            Path.Add(end);
+        }
     }
 
     private List<Point> GenerateShortestPath(Point end)
