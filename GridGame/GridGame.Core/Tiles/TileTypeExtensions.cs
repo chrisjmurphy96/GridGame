@@ -1,4 +1,5 @@
 using System;
+using GridLibrary.Grid;
 
 namespace GridGame.Core.Tiles;
 

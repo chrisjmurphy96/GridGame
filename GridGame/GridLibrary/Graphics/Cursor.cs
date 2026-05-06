@@ -11,6 +11,8 @@ public class Cursor
     public Vector2 Position = Vector2.Zero;
     public required AnimatedSprite CursorSprite { get; set; }
 
+    public void Update(GameTime gameTime) => CursorSprite.Update(gameTime);
+
     public void Move(Vector2 movement, Camera camera)
     {
         Move(movement, Step, camera);

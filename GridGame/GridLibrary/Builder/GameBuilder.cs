@@ -1,6 +1,4 @@
-using Microsoft.Xna.Framework;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using GridLibrary.Scenes;
 
 namespace GridLibrary.Builder;

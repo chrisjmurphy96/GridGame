@@ -36,8 +36,25 @@ public static class SpriteBatchExtensions
                     layerDepth: 1.0f);
             }
         }
-
+        spriteBatch.Draw(grid.MovementArrow, grid.Scalar);
         spriteBatch.Draw(grid.Cursor);
+    }
+
+    public static void Draw<T>(this SpriteBatch spriteBatch, MovementArrow<T> movementArrow, int scalar) where T : struct, Enum
+    {
+        foreach(Point point in movementArrow.Path)
+        {
+            Vector2 position = point.ToVector2() * scalar * 16;
+            spriteBatch.Draw(
+                textureRegion: movementArrow.HeadTexture,
+                position: position,
+                color: Color.White,
+                rotation: 0f,
+                origin: Vector2.Zero,
+                scale: Vector2.One * scalar,
+                effects: SpriteEffects.None,
+                layerDepth: 1.0f);
+        }
     }
 
     public static void Draw(this SpriteBatch spriteBatch, Cursor cursor)

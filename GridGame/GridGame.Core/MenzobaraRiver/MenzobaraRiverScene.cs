@@ -59,19 +59,29 @@ public class MenzobaraRiverScene(
         LdtkLayerInstance layerInstance = level.GetDefaultLayer();
         string atlasName = Path.GetFileNameWithoutExtension(layerInstance.TilesetRelPath);
         Texture2D atlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", atlasName));
-        TextureRegion cursorFrame = new()
+        TextureRegion cursorFrameOne = new()
         {
             Texture = atlas,
             SourceRectangle = new Rectangle(x: 48, y: 16, width: 16, height: 16)
         };
+        TextureRegion cursorFrameTwo = new ()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(x: 48, y: 32, width: 16, height: 16)
+        };
         Animation cursorAnimation = new()
         {
-            Frames = [cursorFrame]
+            Frames = [cursorFrameOne, cursorFrameTwo],
+            Delay = TimeSpan.FromMilliseconds(500)
         };
         AnimatedSprite cursorSprite = new()
         {
             Animation = cursorAnimation,
             Scale = Vector2.One * 4
+        };
+        Cursor cursor = new ()
+        {
+            CursorSprite = cursorSprite
         };
         TextureRegion gridOverlayTexture = new()
         {
@@ -79,7 +89,15 @@ public class MenzobaraRiverScene(
             SourceRectangle = new Rectangle(x: 0, y: 32, width: 16, height: 16)
         };
 
-        _grid = new Grid<TileType>(ldtkProjectFile, levelName, atlas, gridOverlayTexture, scalar: 4, cursorSprite);
+        MovementArrow<TileType> movementArrow = new()
+        {
+            HeadTexture = gridOverlayTexture,
+            StraightTexture = gridOverlayTexture,
+            BendTexture = gridOverlayTexture,
+            StartTexture = gridOverlayTexture
+        };
+
+        _grid = new Grid<TileType>(ldtkProjectFile, levelName, atlas, gridOverlayTexture, scalar: 4, cursor, movementArrow);
         
         _camera.CameraBounds = new()
         {
@@ -125,8 +143,16 @@ public class MenzobaraRiverScene(
             _keyboardInfo.ResetKeyHold(Keys.Left);
             _grid.MoveCursorLeft(_camera);
         }
+        if (_keyboardInfo.WasKeyJustPressed(Keys.Z))
+        {
+            _grid.StartPath();
+        }
+        if (_keyboardInfo.WasKeyJustPressed(Keys.X))
+        {
+            _grid.CancelPath();
+        }
         TileType tileType = _grid.ActiveTile.TileType;
-        _activeTileInfo = tileType.GetTileInfo();
+        // _activeTileInfo = tileType.GetTileInfo();
         _grid.Update(gameTime);
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
@@ -151,7 +177,7 @@ public class MenzobaraRiverScene(
         _spriteBatch.End();
 
         _spriteBatch.Begin(samplerState: SamplerState.AnisotropicClamp);
-        _spriteBatch.DrawString(_font, _activeTileInfo.ToString(), Vector2.Zero, Color.White);
+        // _spriteBatch.DrawString(_font, _activeTileInfo.ToString(), Vector2.Zero, Color.White);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _frameCounter.Update(deltaTime);
         string fps = string.Format("FPS: {0}", (int)_frameCounter.AverageFramesPerSecond);

@@ -9,14 +9,21 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace GridLibrary.Grid;
 
-public class Grid<T> where T : struct, Enum
+public abstract class BaseGrid
 {
-    public GridTile<T>[] Tiles { get; }
+    public abstract BaseGridTile[] Tiles { get; }
+}
+
+public class Grid<T> : BaseGrid where T : struct, Enum
+{
+    public override GridTile<T>[] Tiles { get; }
     public LdtkLevel Map { get; }
     public Texture2D MapAtlas { get; }
     public TextureRegion GridOverlay { get; }
     public int Scalar { get; }
     public Cursor Cursor { get; }
+    public MovementArrow<T> MovementArrow { get; }
+
     public int Columns => Map.GetDefaultLayer().Columns;
     public int Rows => Map.GetDefaultLayer().Rows;
 
@@ -29,16 +36,15 @@ public class Grid<T> where T : struct, Enum
         Texture2D mapAtlas,
         TextureRegion gridOverlayTexture,
         int scalar,
-        AnimatedSprite cursorSprite)
+        Cursor cursor,
+        MovementArrow<T> movementArrow)
     {
         Map = projectFile.GetLevelByName(levelName);
         MapAtlas = mapAtlas;
         GridOverlay = gridOverlayTexture;
         Scalar = scalar;
-        Cursor = new Cursor
-        {
-            CursorSprite = cursorSprite
-        };
+        Cursor = cursor;
+        MovementArrow = movementArrow;
 
         LdtkLayerInstance layerInstance = Map.GetDefaultLayer();
         int tilesetUid = layerInstance.TilesetDefUid;
@@ -104,7 +110,7 @@ public class Grid<T> where T : struct, Enum
                 Height = ldtkLayerInstance.GridSize
             }
         };
-        return new GridTile<T>(ldtkGridTile.Position, tileType, texture);
+        return new GridTile<T>(ldtkGridTile.Position, texture, tileType);
     }
 
     /// <summary>
@@ -124,6 +130,8 @@ public class Grid<T> where T : struct, Enum
 
     public void Update(GameTime gameTime)
     {
+        Cursor.Update(gameTime);
+        // MovementArrow.Update(_cursorPosition);
         foreach (GridTile<T> gridTile in Tiles)
             gridTile.Update(gameTime);
     }
@@ -138,6 +146,7 @@ public class Grid<T> where T : struct, Enum
                 Y = _cursorPosition.Y - 1
             };
             Cursor.MoveUp(camera);
+            MovementArrow.Update(_cursorPosition);
         }
     }
 
@@ -151,6 +160,7 @@ public class Grid<T> where T : struct, Enum
                 Y = _cursorPosition.Y + 1
             };
             Cursor.MoveDown(camera);
+            MovementArrow.Update(_cursorPosition);
         }
     }
 
@@ -164,6 +174,7 @@ public class Grid<T> where T : struct, Enum
                 Y = _cursorPosition.Y
             };
             Cursor.MoveRight(camera);
+            MovementArrow.Update(_cursorPosition);
         }
     }
 
@@ -177,11 +188,19 @@ public class Grid<T> where T : struct, Enum
                 Y = _cursorPosition.Y
             };
             Cursor.MoveLeft(camera);
+            MovementArrow.Update(_cursorPosition);
         }
     }
 
-    private void MoveCursor()
+    public void StartPath()
     {
-        throw new NotImplementedException();
+        // I might just need to bite the bullet and add the generic typing.
+        // I can't figure out a way to ditch it and still keep the constructor logic.
+        MovementArrow.Start(Columns, Rows, 10, _cursorPosition, Tiles);//.Select(tile => (BaseGridTile)tile));
+    }
+
+    public void CancelPath()
+    {
+        MovementArrow.Cancel();
     }
 }
