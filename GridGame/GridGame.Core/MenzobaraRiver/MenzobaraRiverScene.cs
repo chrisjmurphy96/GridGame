@@ -97,7 +97,16 @@ public class MenzobaraRiverScene(
             StartTexture = gridOverlayTexture
         };
 
-        _grid = new Grid<TileType>(ldtkProjectFile, levelName, atlas, gridOverlayTexture, scalar: 4, cursor, movementArrow);
+        _grid = new Grid<TileType>(
+            ldtkProjectFile,
+            levelName,
+            atlas,
+            gridOverlayTexture,
+            scalar: 4,
+            cursor,
+            movementArrow,
+            (point, texture, tileType) => new RiverGridTile(point, texture, tileType),
+            (point, animation, tileType) => new AnimatedRiverGridTile(point, animation, tileType));
         
         _camera.CameraBounds = new()
         {
@@ -152,7 +161,7 @@ public class MenzobaraRiverScene(
             _grid.CancelPath();
         }
         TileType tileType = _grid.ActiveTile.TileType;
-        // _activeTileInfo = tileType.GetTileInfo();
+        _activeTileInfo = tileType.GetTileInfo();
         _grid.Update(gameTime);
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
@@ -177,7 +186,7 @@ public class MenzobaraRiverScene(
         _spriteBatch.End();
 
         _spriteBatch.Begin(samplerState: SamplerState.AnisotropicClamp);
-        // _spriteBatch.DrawString(_font, _activeTileInfo.ToString(), Vector2.Zero, Color.White);
+        _spriteBatch.DrawString(_font, _activeTileInfo.ToString(_grid.Cursor.Position), Vector2.Zero, Color.White);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _frameCounter.Update(deltaTime);
         string fps = string.Format("FPS: {0}", (int)_frameCounter.AverageFramesPerSecond);

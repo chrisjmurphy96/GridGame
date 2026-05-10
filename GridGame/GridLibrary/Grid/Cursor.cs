@@ -1,6 +1,7 @@
+using GridLibrary.Graphics;
 using Microsoft.Xna.Framework;
 
-namespace GridLibrary.Graphics;
+namespace GridLibrary.Grid;
 
 public class Cursor
 {

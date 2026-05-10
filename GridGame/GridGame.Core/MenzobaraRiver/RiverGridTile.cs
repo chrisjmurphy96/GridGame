@@ -5,10 +5,8 @@ using Microsoft.Xna.Framework;
 
 namespace GridGame.Core.MenzobaraRiver;
 
-public class RiverGridTile(Point position, TileType tileType, Animation animation) : AnimatedGridTile<TileType>(position, tileType, animation)
+public class RiverGridTile(Point position, TextureRegion texture, TileType tileType) :
+    GridTile<TileType>(position, texture, tileType)
 {
-    public override TileInfo GetTileInfo()
-    {
-        return TileType.GetTileInfo();
-    }
+    public override TileInfo GetTileInfo() => TileType.GetTileInfo();
 }

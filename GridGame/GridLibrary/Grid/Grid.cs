@@ -9,26 +9,24 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace GridLibrary.Grid;
 
-public abstract class BaseGrid
+public class Grid<tileType> where tileType : struct, Enum
 {
-    public abstract BaseGridTile[] Tiles { get; }
-}
-
-public class Grid<T> : BaseGrid where T : struct, Enum
-{
-    public override GridTile<T>[] Tiles { get; }
+    public GridTileList<tileType> Tiles { get; }
     public LdtkLevel Map { get; }
     public Texture2D MapAtlas { get; }
     public TextureRegion GridOverlay { get; }
     public int Scalar { get; }
     public Cursor Cursor { get; }
-    public MovementArrow<T> MovementArrow { get; }
+    public MovementArrow<tileType> MovementArrow { get; }
 
     public int Columns => Map.GetDefaultLayer().Columns;
     public int Rows => Map.GetDefaultLayer().Rows;
 
     private Point _cursorPosition = Point.Zero;
-    public GridTile<T> ActiveTile => this[_cursorPosition];
+    private readonly Func<Point, TextureRegion, tileType, GridTile<tileType>> _gridTileFactory;
+    private readonly Func<Point, Animation, tileType, AnimatedGridTile<tileType>> _animatedGridTileFactory;
+
+    public GridTile<tileType> ActiveTile => this[_cursorPosition];
     
     public Grid(
         LdtkProjectFile projectFile,
@@ -37,7 +35,9 @@ public class Grid<T> : BaseGrid where T : struct, Enum
         TextureRegion gridOverlayTexture,
         int scalar,
         Cursor cursor,
-        MovementArrow<T> movementArrow)
+        MovementArrow<tileType> movementArrow,
+        Func<Point, TextureRegion, tileType, GridTile<tileType>> gridTileFactory,
+        Func<Point, Animation, tileType, AnimatedGridTile<tileType>> animatedGridTileFactory)
     {
         Map = projectFile.GetLevelByName(levelName);
         MapAtlas = mapAtlas;
@@ -45,15 +45,16 @@ public class Grid<T> : BaseGrid where T : struct, Enum
         Scalar = scalar;
         Cursor = cursor;
         MovementArrow = movementArrow;
-
+        _gridTileFactory = gridTileFactory;
+        _animatedGridTileFactory = animatedGridTileFactory;
         LdtkLayerInstance layerInstance = Map.GetDefaultLayer();
         int tilesetUid = layerInstance.TilesetDefUid;
         LdtkTileset tileset = projectFile.Defs.Tilesets.Single(tileset => tileset.Uid == tilesetUid);
         
-        List<(T tileType, int[] tileIds)> enumTags = [];
+        List<(tileType tileType, int[] tileIds)> enumTags = [];
         foreach (LdtkEnumTag enumTag in tileset.EnumTags)
         {
-            T enumValue = Enum.Parse<T>(enumTag.EnumValueId);
+            tileType enumValue = Enum.Parse<tileType>(enumTag.EnumValueId);
             enumTags.Add((enumValue, enumTag.TileIds));
         }
 
@@ -65,40 +66,40 @@ public class Grid<T> : BaseGrid where T : struct, Enum
         }
 
         LdtkGridTile[] ldtkGridTiles = layerInstance.GridTiles;
-        Tiles = new GridTile<T>[ldtkGridTiles.Length];
-        for (int i = 0; i < ldtkGridTiles.Length; i++)
+        Tiles = new GridTileList<tileType>(Columns);
+        foreach(LdtkGridTile ldtkGridTile in ldtkGridTiles)
         {
-            if (tileIdToFrameData.TryGetValue(ldtkGridTiles[i].TileId, out FrameData frameData))
+            if (tileIdToFrameData.TryGetValue(ldtkGridTile.TileId, out FrameData frameData))
             {
-                Tiles[i] = CreateAnimatedGridTile(ldtkGridTiles[i], mapAtlas, layerInstance, enumTags, frameData);
+                Tiles.Add(CreateAnimatedGridTile(ldtkGridTile, mapAtlas, layerInstance, enumTags, frameData));
             }
             else
             {
-                Tiles[i] = CreateGridTile(ldtkGridTiles[i], mapAtlas, layerInstance, enumTags);
+                Tiles.Add(CreateGridTile(ldtkGridTile, mapAtlas, layerInstance, enumTags));
             }
         }
     }
 
-    private static AnimatedGridTile<T> CreateAnimatedGridTile(
+    private AnimatedGridTile<tileType> CreateAnimatedGridTile(
         LdtkGridTile ldtkGridTile,
         Texture2D mapAtlas,
         LdtkLayerInstance ldtkLayerInstance,
-        List<(T tileType, int[] tileIds)> enumTags,
+        List<(tileType tileType, int[] tileIds)> enumTags,
         FrameData frameData)
     {
-        T tileType = enumTags.Single(e => e.tileIds.Contains(ldtkGridTile.TileId)).tileType;
+        tileType tileType = enumTags.Single(e => e.tileIds.Contains(ldtkGridTile.TileId)).tileType;
         int gridSize = ldtkLayerInstance.GridSize;
         Animation animation = Animation.FromFrameData(mapAtlas, frameData, gridSize, gridSize);
-        return new AnimatedGridTile<T>(ldtkGridTile.Position, tileType, animation);
+        return _animatedGridTileFactory(ldtkGridTile.Position, animation, tileType);
     }
 
-    private static GridTile<T> CreateGridTile(
+    private GridTile<tileType> CreateGridTile(
         LdtkGridTile ldtkGridTile,
         Texture2D mapAtlas,
         LdtkLayerInstance ldtkLayerInstance,
-        List<(T tileType, int[] tileIds)> enumTags)
+        List<(tileType tileType, int[] tileIds)> enumTags)
     {
-        T tileType = enumTags.Single(e => e.tileIds.Contains(ldtkGridTile.TileId)).tileType;
+        tileType tileType = enumTags.Single(e => e.tileIds.Contains(ldtkGridTile.TileId)).tileType;
         TextureRegion texture = new()
         {
             Texture = mapAtlas,
@@ -110,29 +111,28 @@ public class Grid<T> : BaseGrid where T : struct, Enum
                 Height = ldtkLayerInstance.GridSize
             }
         };
-        return new GridTile<T>(ldtkGridTile.Position, texture, tileType);
+        return _gridTileFactory(ldtkGridTile.Position, texture, tileType);
     }
 
     /// <summary>
     /// Gets the grid tile
     /// </summary>
     /// <param name="index">The index of the grid tile</param>
-    public GridTile<T> this[int index] => this.Tiles[index];
+    public GridTile<tileType> this[int index] => this.Tiles[index];
 
     /// <summary>
     /// Gets the grid tile at column and row.
     /// </summary>
-    public GridTile<T> this[int column, int row] => this.Tiles[GetIndex(column, row)];
+    public GridTile<tileType> this[int column, int row] => this.Tiles[GetIndex(column, row)];
 
-    public GridTile<T> this[Point point] => this.Tiles[GetIndex(point.X, point.Y)];
+    public GridTile<tileType> this[Point point] => this.Tiles[GetIndex(point.X, point.Y)];
 
     private int GetIndex(int column, int row) => (row * Columns) + column;
 
     public void Update(GameTime gameTime)
     {
         Cursor.Update(gameTime);
-        // MovementArrow.Update(_cursorPosition);
-        foreach (GridTile<T> gridTile in Tiles)
+        foreach (GridTile<tileType> gridTile in Tiles)
             gridTile.Update(gameTime);
     }
 
@@ -196,7 +196,7 @@ public class Grid<T> : BaseGrid where T : struct, Enum
     {
         // I might just need to bite the bullet and add the generic typing.
         // I can't figure out a way to ditch it and still keep the constructor logic.
-        MovementArrow.Start(Columns, Rows, 10, _cursorPosition, Tiles);//.Select(tile => (BaseGridTile)tile));
+        MovementArrow.Start(Columns, Rows, 20, _cursorPosition, Tiles);
     }
 
     public void CancelPath()

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace GridLibrary.Grid;
 
-public class AnimatedGridTile<T>(Point position, T tileType, Animation animation) :
+public abstract class AnimatedGridTile<T>(Point position, Animation animation, T tileType) :
     GridTile<T>(position, animation.CurrentFrame, tileType) where T : Enum
 {
     private readonly Animation _animation = animation;

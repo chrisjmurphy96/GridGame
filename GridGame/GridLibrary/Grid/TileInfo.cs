@@ -1,3 +1,5 @@
+using Microsoft.Xna.Framework;
+
 namespace GridLibrary.Grid;
 
 public class TileInfo
@@ -13,6 +15,17 @@ $@"
 Dodge Modifier: {DodgeModifier}
 Armor Modifier: {ArmorModifier}
 Can walk:       {CanWalk}
+";
+    }
+
+    public string ToString(Vector2 cursorPosition)
+    {
+        return 
+$@"
+Dodge Modifier:  {DodgeModifier}
+Armor Modifier:  {ArmorModifier}
+Can walk:        {CanWalk}
+Cursor position: x: {cursorPosition.X / 64} y: {cursorPosition / 64}
 ";
     }
 }

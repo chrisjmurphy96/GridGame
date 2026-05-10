@@ -10,6 +10,10 @@
     <AssemblyName>GridGame</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <PropertyGroup>
+    <!--Ideally I would solve this (Hud.xnb), but for now more interested in it working-->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+  </PropertyGroup>
   <ItemGroup>
     <MonoGameContentReference Include="..\GridGame.Core\Content\GridGame.mgcb">
       <Link>Content\GridGame.mgcb</Link>
