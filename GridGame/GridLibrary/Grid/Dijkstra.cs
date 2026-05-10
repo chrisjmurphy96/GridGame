@@ -16,7 +16,7 @@ public static class Dijkstra
 
     public static List<Point>? Search<T>(Point start, Point end, int maxMovement, GridTileList<T> gridTiles) where T : struct, Enum
     {
-        int distance = GetDistance(start, end);
+        int distance = start.DistanceTo(end);
         if (distance > maxMovement)
             throw new InvalidMoveException(start, end);
         Dictionary<Point, DecisionGraphNode> exploredSpace = new()
@@ -35,13 +35,13 @@ public static class Dijkstra
             DecisionGraphNode currentNode = exploredSpace[nextPoint];
             if (currentNode.StepsToReach >= maxMovement)
                 continue;
-            foreach(Point neighbor in GetNeighbors(nextPoint))
+            foreach(Point neighbor in nextPoint.GetNeighbors())
             {
                 if (!gridTiles.InBounds(neighbor))
                     continue;
 
-                int neighborDistanceToEnd = GetDistance(end, neighbor);
-                bool tooFarFromStart = GetDistance(start, neighbor) > maxMovement;
+                int neighborDistanceToEnd = neighbor.DistanceTo(end);
+                bool tooFarFromStart = start.DistanceTo(neighbor) > maxMovement;
                 bool tooFarFromEnd = neighborDistanceToEnd > maxMovement;
                 if (tooFarFromStart || tooFarFromEnd)
                     continue;
@@ -91,13 +91,4 @@ public static class Dijkstra
         solution.Reverse();
         return solution;
     }
-
-    // These could all be extension methods for Point, if I want them in other places
-    private static Point[] GetNeighbors(Point point) => [Up(point), Down(point), Left(point), Right(point)];
-    private static Point Up(Point point) => new() { X = point.X, Y = point.Y - 1 };
-    private static Point Down(Point point) => new() { X = point.X, Y = point.Y + 1 };
-    private static Point Left(Point point) => new() { X = point.X - 1, Y = point.Y };
-    private static Point Right(Point point) => new() { X = point.X + 1, Y = point.Y };
-    // Grid distance is very simple since there is no diagonal.
-    private static int GetDistance(Point a, Point b) => Math.Abs(b.X - a.X) + Math.Abs(b.Y - a.Y);
 }

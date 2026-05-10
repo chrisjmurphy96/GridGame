@@ -16,6 +16,7 @@ public class Grid<tileType> where tileType : struct, Enum
     public Texture2D MapAtlas { get; }
     public TextureRegion GridOverlay { get; }
     public int Scalar { get; }
+    public int TileSize { get; set; }
     public Cursor Cursor { get; }
     public MovementArrow<tileType> MovementArrow { get; }
 
@@ -26,7 +27,7 @@ public class Grid<tileType> where tileType : struct, Enum
     private readonly Func<Point, TextureRegion, tileType, GridTile<tileType>> _gridTileFactory;
     private readonly Func<Point, Animation, tileType, AnimatedGridTile<tileType>> _animatedGridTileFactory;
 
-    public GridTile<tileType> ActiveTile => this[_cursorPosition];
+    public GridTile<tileType> ActiveTile => Tiles[_cursorPosition];
     
     public Grid(
         LdtkProjectFile projectFile,
@@ -50,6 +51,7 @@ public class Grid<tileType> where tileType : struct, Enum
         LdtkLayerInstance layerInstance = Map.GetDefaultLayer();
         int tilesetUid = layerInstance.TilesetDefUid;
         LdtkTileset tileset = projectFile.Defs.Tilesets.Single(tileset => tileset.Uid == tilesetUid);
+        TileSize = tileset.TileGridSize;
         
         List<(tileType tileType, int[] tileIds)> enumTags = [];
         foreach (LdtkEnumTag enumTag in tileset.EnumTags)
@@ -114,21 +116,6 @@ public class Grid<tileType> where tileType : struct, Enum
         return _gridTileFactory(ldtkGridTile.Position, texture, tileType);
     }
 
-    /// <summary>
-    /// Gets the grid tile
-    /// </summary>
-    /// <param name="index">The index of the grid tile</param>
-    public GridTile<tileType> this[int index] => this.Tiles[index];
-
-    /// <summary>
-    /// Gets the grid tile at column and row.
-    /// </summary>
-    public GridTile<tileType> this[int column, int row] => this.Tiles[GetIndex(column, row)];
-
-    public GridTile<tileType> this[Point point] => this.Tiles[GetIndex(point.X, point.Y)];
-
-    private int GetIndex(int column, int row) => (row * Columns) + column;
-
     public void Update(GameTime gameTime)
     {
         Cursor.Update(gameTime);
@@ -140,11 +127,7 @@ public class Grid<tileType> where tileType : struct, Enum
     {
         if (_cursorPosition.Y > 0)
         {
-            _cursorPosition = new Point
-            {
-                X = _cursorPosition.X,
-                Y = _cursorPosition.Y - 1
-            };
+            _cursorPosition = _cursorPosition.Up();
             Cursor.MoveUp(camera);
             MovementArrow.Update(_cursorPosition);
         }
@@ -154,11 +137,7 @@ public class Grid<tileType> where tileType : struct, Enum
     {
         if (_cursorPosition.Y < (Rows - 1))
         {
-            _cursorPosition = new Point
-            {
-                X = _cursorPosition.X,
-                Y = _cursorPosition.Y + 1
-            };
+            _cursorPosition = _cursorPosition.Down();
             Cursor.MoveDown(camera);
             MovementArrow.Update(_cursorPosition);
         }
@@ -168,11 +147,7 @@ public class Grid<tileType> where tileType : struct, Enum
     {
         if (_cursorPosition.X < (Columns - 1))
         {
-            _cursorPosition = new Point
-            {
-                X = _cursorPosition.X + 1,
-                Y = _cursorPosition.Y
-            };
+            _cursorPosition = _cursorPosition.Right();
             Cursor.MoveRight(camera);
             MovementArrow.Update(_cursorPosition);
         }
@@ -182,11 +157,7 @@ public class Grid<tileType> where tileType : struct, Enum
     {
         if (_cursorPosition.X > 0)
         {
-            _cursorPosition = new Point
-            {
-                X = _cursorPosition.X - 1,
-                Y = _cursorPosition.Y
-            };
+            _cursorPosition = _cursorPosition.Left();
             Cursor.MoveLeft(camera);
             MovementArrow.Update(_cursorPosition);
         }

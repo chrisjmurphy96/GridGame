@@ -72,7 +72,7 @@ public class MovementArrow<T> where T : struct, Enum
             return;
         
         // skip updating if we're past max range
-        if (GetDistance(StartPosition, end) > _maxMovement)
+        if (StartPosition.DistanceTo(end) > _maxMovement)
             return;
 
         // if we haven't moved, skip updating
@@ -80,16 +80,5 @@ public class MovementArrow<T> where T : struct, Enum
             return;
 
         Path = Dijkstra.Search<T>(StartPosition, end, _maxMovement, _gridTiles) ?? Path;
-    }
-
-    /// <summary>
-    /// With grid based movement there is no "diagonal", so you can
-    /// simply add the x and y difference.
-    /// </summary>
-    public static int GetDistance(Point start, Point end)
-    {
-        int x = Math.Abs(start.X - end.X);
-        int y = Math.Abs(start.Y - end.Y);
-        return x + y;
     }
 }
