@@ -88,6 +88,13 @@ public static class Dijkstra
             point = node.LowestCostNeighbor;
         }
 
+        // the start position is not counted towards movement.
+        // safely return if the shortest solution is still too long.
+        if (solution.Count > maxMovement + 1)
+        {
+            return null;
+        }
+
         solution.Reverse();
         return solution;
     }

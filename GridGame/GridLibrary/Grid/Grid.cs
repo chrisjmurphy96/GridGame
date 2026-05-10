@@ -165,8 +165,6 @@ public class Grid<tileType> where tileType : struct, Enum
 
     public void StartPath()
     {
-        // I might just need to bite the bullet and add the generic typing.
-        // I can't figure out a way to ditch it and still keep the constructor logic.
         MovementArrow.Start(Columns, Rows, 20, _cursorPosition, Tiles);
     }
 

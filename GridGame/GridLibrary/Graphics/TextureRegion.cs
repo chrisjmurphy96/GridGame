@@ -49,4 +49,6 @@ public class TextureRegion
     /// Gets the right normalized texture coordinate of this region.
     /// </summary>
     public float RightTextureCoordinate => SourceRectangle.Right / (float)Texture.Width;
+
+    public Vector2 GetCenter() => new Vector2(Width, Height) * 0.5f;
 }

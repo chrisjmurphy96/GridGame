@@ -89,12 +89,33 @@ public class MenzobaraRiverScene(
             SourceRectangle = new Rectangle(x: 0, y: 32, width: 16, height: 16)
         };
 
+        TextureRegion arrowHead = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(x: 32, y: 0, width: 16, height: 16)
+        };
+        TextureRegion arrowBody = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(x: 48, y: 0, width: 16, height: 16)
+        };
+        TextureRegion arrowBend = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(x: 32, y: 32, width: 16, height: 16)
+        };
+        TextureRegion arrowStart = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(x: 32, y: 16, width: 16, height: 16)
+        };
+
         MovementArrow<TileType> movementArrow = new()
         {
-            HeadTexture = gridOverlayTexture,
-            StraightTexture = gridOverlayTexture,
-            BendTexture = gridOverlayTexture,
-            StartTexture = gridOverlayTexture
+            HeadTexture = arrowHead,
+            StraightTexture = arrowBody,
+            BendTexture = arrowBend,
+            StartTexture = arrowStart
         };
 
         _grid = new Grid<TileType>(
