@@ -36,15 +36,15 @@ public static class SpriteBatchExtensions
                     layerDepth: 1.0f);
             }
         }
-        spriteBatch.Draw(grid.MovementArrow, grid.Scalar);
+        spriteBatch.Draw(grid.MovementArrow, grid.Scalar, grid.TileSize);
         spriteBatch.Draw(grid.Cursor);
     }
 
-    public static void Draw<T>(this SpriteBatch spriteBatch, MovementArrow<T> movementArrow, int scalar) where T : struct, Enum
+    public static void Draw<T>(this SpriteBatch spriteBatch, MovementArrow<T> movementArrow, int scalar, int tileSize) where T : struct, Enum
     {
         foreach(Point point in movementArrow.Path)
         {
-            Vector2 position = point.ToVector2() * scalar * 16;
+            Vector2 position = point.ToVector2() * scalar * tileSize;
             spriteBatch.Draw(
                 textureRegion: movementArrow.HeadTexture,
                 position: position,
