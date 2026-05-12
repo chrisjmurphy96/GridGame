@@ -3,8 +3,6 @@ using GridLibrary.Graphics;
 
 namespace GridGame.Core.Entities;
 
-// the fighter and goblin should probably be implemented in Core instead,
-// since they are specific to this game
 public class Fighter : IEntity
 {
     public static string LdtkIdentifier => "Fighter";
