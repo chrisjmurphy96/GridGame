@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using GridGame.Core.Entities;
 using GridGame.Core.Tiles;
 using GridLibrary;
+using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Grid;
 using GridLibrary.Input;
@@ -56,7 +58,7 @@ public class MenzobaraRiverScene(
         LdtkProjectFile ldtkProjectFile = _ldtkImporter.Import(Path.Combine("Images", "basic-map.ldtk"));
         string levelName = "Menzobara_River";
         LdtkLevel level = ldtkProjectFile.GetLevelByName(levelName);
-        LdtkLayerInstance layerInstance = level.GetDefaultLayer();
+        LdtkLayerInstance layerInstance = level.GetTileLayer();
         string atlasName = Path.GetFileNameWithoutExtension(layerInstance.TilesetRelPath);
         Texture2D atlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", atlasName));
         TextureRegion cursorFrameOne = new()
@@ -118,6 +120,41 @@ public class MenzobaraRiverScene(
             StartTexture = arrowStart
         };
 
+        TextureRegion movementOverlay = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(48, 48, 16, 16)
+        };
+        TextureRegion attackOverlay = new ()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(32, 48, 16, 16)
+        };
+
+        MoveOverlay<TileType> moveOverlay = new ()
+        {
+            MovementTexture = movementOverlay,
+            AttackTexture = attackOverlay
+        };
+
+        LdtkLayerInstance entityLayer = level.GetEntityLayer();
+        TextureRegion goblinTexture = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(0, 48, 16, 16)
+        };
+        TextureRegion fighterTexture = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(16, 48, 16, 16)
+        };
+        Dictionary<string, TextureRegion> identifierToTexture = new()
+        {
+            { Goblin.LdtkIdentifier, goblinTexture },
+            { Fighter.LdtkIdentifier, fighterTexture }
+        };
+        Dictionary<Point, IEntity> entities = EntityFactory.CreateLayerEntities(entityLayer, identifierToTexture);
+
         _grid = new Grid<TileType>(
             ldtkProjectFile,
             levelName,
@@ -126,6 +163,8 @@ public class MenzobaraRiverScene(
             scalar: 4,
             cursor,
             movementArrow,
+            moveOverlay,
+            entities,
             (point, texture, tileType) => new RiverGridTile(point, texture, tileType),
             (point, animation, tileType) => new AnimatedRiverGridTile(point, animation, tileType));
         
@@ -175,11 +214,11 @@ public class MenzobaraRiverScene(
         }
         if (_keyboardInfo.WasKeyJustPressed(Keys.Z))
         {
-            _grid.StartPath();
+            _grid.CursorClick();
         }
         if (_keyboardInfo.WasKeyJustPressed(Keys.X))
         {
-            _grid.CancelPath();
+            _grid.CancelCursorClick();
         }
         TileType tileType = _grid.ActiveTile.TileType;
         _activeTileInfo = tileType.GetTileInfo();

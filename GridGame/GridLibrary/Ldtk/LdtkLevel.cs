@@ -14,5 +14,6 @@ public struct LdtkLevel
     [JsonPropertyName("pxHei")]
     public int LayerHeight { get; set; }
 
-    public readonly LdtkLayerInstance GetDefaultLayer() => LayerInstances.First();
+    public readonly LdtkLayerInstance GetTileLayer() => LayerInstances.Single(layer => layer.Identifier == "Tiles");
+    public readonly LdtkLayerInstance GetEntityLayer() => LayerInstances.Single(layer => layer.Identifier == "Entities");
 }

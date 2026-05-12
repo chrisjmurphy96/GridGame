@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using GridLibrary.Entities;
 using Microsoft.Xna.Framework;
 
 namespace GridLibrary.Grid;
@@ -14,14 +16,18 @@ public static class Dijkstra
 {
     private const int MAX_ITERATIONS = 200;
 
-    public static List<Point>? Search<T>(Point start, Point end, int maxMovement, GridTileList<T> gridTiles) where T : struct, Enum
+    public static List<Point>? Search<T>(
+        Point start,
+        Point end,
+        int maxMovement,
+        HashSet<Point> walkableSpace) where T : struct, Enum
     {
         int distance = start.DistanceTo(end);
         if (distance > maxMovement)
             throw new InvalidMoveException(start, end);
-        Dictionary<Point, DecisionGraphNode> exploredSpace = new()
+        Dictionary<Point, SearchNode> exploredSpace = new()
         {
-            { start, new DecisionGraphNode { LowestCostNeighbor = start, StepsToReach = 0 } }
+            { start, new SearchNode { LowestCostNeighbor = start, StepsToReach = 0 } }
         };
         // lowest priority is removed first. From here, we can use
         // distance remaining to end as the priority
@@ -32,24 +38,17 @@ public static class Dijkstra
         while (_searchQueue.Count > 0 && iterations < MAX_ITERATIONS)
         {
             Point nextPoint = _searchQueue.Dequeue();
-            DecisionGraphNode currentNode = exploredSpace[nextPoint];
+            SearchNode currentNode = exploredSpace[nextPoint];
             if (currentNode.StepsToReach >= maxMovement)
                 continue;
             foreach(Point neighbor in nextPoint.GetNeighbors())
             {
-                if (!gridTiles.InBounds(neighbor))
+                if (!walkableSpace.Contains(neighbor))
                     continue;
 
                 int neighborDistanceToEnd = neighbor.DistanceTo(end);
-                bool tooFarFromStart = start.DistanceTo(neighbor) > maxMovement;
-                bool tooFarFromEnd = neighborDistanceToEnd > maxMovement;
-                if (tooFarFromStart || tooFarFromEnd)
-                    continue;
-                
-                if (!gridTiles[neighbor].GetTileInfo().CanWalk)
-                    continue;
 
-                if (exploredSpace.TryGetValue(neighbor, out DecisionGraphNode? node))
+                if (exploredSpace.TryGetValue(neighbor, out SearchNode? node))
                 {
                     int newStepsToReach = currentNode.StepsToReach + 1;
                     if (newStepsToReach < node.StepsToReach)
@@ -61,7 +60,7 @@ public static class Dijkstra
                 }
                 else
                 {
-                    exploredSpace.Add(neighbor, new DecisionGraphNode
+                    exploredSpace.Add(neighbor, new SearchNode
                     {
                         StepsToReach = currentNode.StepsToReach + 1,
                         LowestCostNeighbor = nextPoint
@@ -83,7 +82,7 @@ public static class Dijkstra
         List<Point> solution = [end];
         while (point != start)
         {
-            DecisionGraphNode node = exploredSpace[point];
+            SearchNode node = exploredSpace[point];
             solution.Add(node.LowestCostNeighbor);
             point = node.LowestCostNeighbor;
         }
@@ -97,5 +96,128 @@ public static class Dijkstra
 
         solution.Reverse();
         return solution;
+    }
+
+    public static HashSet<Point> GetWalkable<T>(
+        Point start,
+        int maxMovement,
+        GridTileList<T> gridTiles,
+        Dictionary<Point, IEntity> entities) where T : struct, Enum
+    {
+        Dictionary<Point, ReachableNode> exploredSpace = new()
+        {
+            { start, new ReachableNode { StepsToReach = 0 } }
+        };
+        PriorityQueue<Point, int> _searchQueue = new();
+        _searchQueue.Enqueue(start, 0);
+
+        int iterations = 0;
+        while (_searchQueue.Count > 0 && iterations < MAX_ITERATIONS)
+        {
+            Point nextPoint = _searchQueue.Dequeue();
+            ReachableNode currentNode = exploredSpace[nextPoint];
+            if (currentNode.StepsToReach >= maxMovement)
+                continue;
+            
+            foreach(Point neighbor in nextPoint.GetNeighbors())
+            {
+                if (!gridTiles.InBounds(neighbor))
+                    continue;
+
+                if (!gridTiles[neighbor].GetTileInfo().CanWalk)
+                    continue;
+
+                if (entities.TryGetValue(neighbor, out IEntity? entity) &&
+                    entity is not null &&
+                    !entity.Properties.IsFriendly)
+                    continue;
+
+                int newStepsToReach = currentNode.StepsToReach + 1;
+                if (exploredSpace.TryGetValue(neighbor, out ReachableNode? node))
+                {
+                    if (newStepsToReach < node.StepsToReach)
+                    {
+                        node.StepsToReach = newStepsToReach;
+                        _searchQueue.Enqueue(neighbor, newStepsToReach);
+                    }
+                }
+                else
+                {
+                    exploredSpace.Add(neighbor, new ReachableNode
+                    {
+                        StepsToReach = newStepsToReach
+                    });
+                    _searchQueue.Enqueue(neighbor, newStepsToReach);
+                }
+            }
+        }
+
+        return [.. exploredSpace.Select(node => node.Key)];
+    }
+
+    public static HashSet<Point> GetAttackable<T>(int attackRange, HashSet<Point> walkablePoints, GridTileList<T> gridTiles) where T : struct, Enum
+    {
+        HashSet<Point> attackPoints = [];
+        foreach(Point point in walkablePoints)
+        {
+            Point[] neighbors = point.GetNeighbors();
+            // find all points in attackRange but not in the walkable set
+            foreach(Point neighbor in neighbors)
+            {
+                if (walkablePoints.Contains(neighbor))
+                    continue;
+
+                IEnumerable<Point> reachable = GetReachable<T>(neighbor, attackRange, gridTiles)
+                    .Where(reachablePoint => !walkablePoints.Contains(reachablePoint) && gridTiles.InBounds(reachablePoint));
+                attackPoints.UnionWith(reachable);
+            }
+        }
+
+        return attackPoints;
+    }
+
+    private static HashSet<Point> GetReachable<T>(Point start, int range, GridTileList<T> gridTiles) where T : struct, Enum
+    {
+        Dictionary<Point, ReachableNode> exploredSpace = new()
+        {
+            { start, new ReachableNode { StepsToReach = 0 } }
+        };
+        PriorityQueue<Point, int> _searchQueue = new();
+        _searchQueue.Enqueue(start, 0);
+
+        int iterations = 0;
+        while (_searchQueue.Count > 0 && iterations < MAX_ITERATIONS)
+        {
+            Point nextPoint = _searchQueue.Dequeue();
+            ReachableNode currentNode = exploredSpace[nextPoint];
+            if (currentNode.StepsToReach >= range - 1)
+                continue;
+            
+            foreach(Point neighbor in nextPoint.GetNeighbors())
+            {
+                if (!gridTiles.InBounds(neighbor))
+                    continue;
+
+                int newStepsToReach = currentNode.StepsToReach + 1;
+                if (exploredSpace.TryGetValue(neighbor, out ReachableNode? node))
+                {
+                    if (newStepsToReach < node.StepsToReach)
+                    {
+                        node.StepsToReach = newStepsToReach;
+                        _searchQueue.Enqueue(neighbor, newStepsToReach);
+                    }
+                }
+                else
+                {
+                    exploredSpace.Add(neighbor, new ReachableNode
+                    {
+                        StepsToReach = newStepsToReach
+                    });
+                    _searchQueue.Enqueue(neighbor, newStepsToReach);
+                }
+            }
+        }
+
+        return [.. exploredSpace.Select(node => node.Key)];
     }
 }

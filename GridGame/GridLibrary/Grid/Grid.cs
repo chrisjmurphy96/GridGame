@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Ldtk;
 using Microsoft.Xna.Framework;
@@ -19,11 +20,15 @@ public class Grid<tileType> where tileType : struct, Enum
     public int TileSize { get; set; }
     public Cursor Cursor { get; }
     public MovementArrow<tileType> MovementArrow { get; }
+    public MoveOverlay<tileType> MoveOverlay { get; }
+    public Dictionary<Point, IEntity> Entities { get; }
 
-    public int Columns => Map.GetDefaultLayer().Columns;
-    public int Rows => Map.GetDefaultLayer().Rows;
+    public int Columns => Map.GetTileLayer().Columns;
+    public int Rows => Map.GetTileLayer().Rows;
 
     private Point _cursorPosition = Point.Zero;
+    private (Point position, IEntity entity) _activeEntity;
+    private bool _makingAMove = false;
     private readonly Func<Point, TextureRegion, tileType, GridTile<tileType>> _gridTileFactory;
     private readonly Func<Point, Animation, tileType, AnimatedGridTile<tileType>> _animatedGridTileFactory;
 
@@ -37,6 +42,8 @@ public class Grid<tileType> where tileType : struct, Enum
         int scalar,
         Cursor cursor,
         MovementArrow<tileType> movementArrow,
+        MoveOverlay<tileType> moveOverlay,
+        Dictionary<Point, IEntity> entities,
         Func<Point, TextureRegion, tileType, GridTile<tileType>> gridTileFactory,
         Func<Point, Animation, tileType, AnimatedGridTile<tileType>> animatedGridTileFactory)
     {
@@ -46,10 +53,12 @@ public class Grid<tileType> where tileType : struct, Enum
         Scalar = scalar;
         Cursor = cursor;
         MovementArrow = movementArrow;
+        MoveOverlay = moveOverlay;
+        Entities = entities;
         _gridTileFactory = gridTileFactory;
         _animatedGridTileFactory = animatedGridTileFactory;
-        LdtkLayerInstance layerInstance = Map.GetDefaultLayer();
-        int tilesetUid = layerInstance.TilesetDefUid;
+        LdtkLayerInstance layerInstance = Map.GetTileLayer();
+        int tilesetUid = layerInstance.TilesetDefUid ?? throw new ArgumentException($"No {layerInstance.TilesetDefUid} found");
         LdtkTileset tileset = projectFile.Defs.Tilesets.Single(tileset => tileset.Uid == tilesetUid);
         TileSize = tileset.TileGridSize;
         
@@ -129,7 +138,7 @@ public class Grid<tileType> where tileType : struct, Enum
         {
             _cursorPosition = _cursorPosition.Up();
             Cursor.MoveUp(camera);
-            MovementArrow.Update(_cursorPosition);
+            MovementArrow.Update(_cursorPosition, MoveOverlay.MovementPoints);
         }
     }
 
@@ -139,7 +148,7 @@ public class Grid<tileType> where tileType : struct, Enum
         {
             _cursorPosition = _cursorPosition.Down();
             Cursor.MoveDown(camera);
-            MovementArrow.Update(_cursorPosition);
+            MovementArrow.Update(_cursorPosition, MoveOverlay.MovementPoints);
         }
     }
 
@@ -149,7 +158,7 @@ public class Grid<tileType> where tileType : struct, Enum
         {
             _cursorPosition = _cursorPosition.Right();
             Cursor.MoveRight(camera);
-            MovementArrow.Update(_cursorPosition);
+            MovementArrow.Update(_cursorPosition, MoveOverlay.MovementPoints);
         }
     }
 
@@ -159,17 +168,55 @@ public class Grid<tileType> where tileType : struct, Enum
         {
             _cursorPosition = _cursorPosition.Left();
             Cursor.MoveLeft(camera);
-            MovementArrow.Update(_cursorPosition);
+            MovementArrow.Update(_cursorPosition, MoveOverlay.MovementPoints);
         }
     }
 
-    public void StartPath()
+    /// <summary>
+    /// Does nothing if the player is already making a move. They should cancel or complete the current move first.
+    /// </summary>
+    public void CursorClick()
     {
-        MovementArrow.Start(Columns, Rows, 20, _cursorPosition, Tiles);
+        Entities.TryGetValue(_cursorPosition, out IEntity? entity);
+        // TODO: this should bring up a menu instead.
+        if (_makingAMove)
+        {
+            if (entity is not null)
+            {
+                // check if we're making an attack
+                if (!entity.Properties.IsFriendly)
+                {
+                    // TODO
+                }
+            }
+            // check if we're just doing normal movement
+            else if (MoveOverlay.MovementPoints.Contains(_cursorPosition))
+            {
+                Entities.Remove(_activeEntity.position);
+                Entities.Add(_cursorPosition, _activeEntity.entity);
+            }
+            CancelCursorClick();
+            return;
+        }
+
+        if (entity is null ||
+            !entity.Properties.IsPlayerControllable)
+        {
+            return;
+        }
+
+        _makingAMove = true;
+        _activeEntity = (_cursorPosition, entity);
+        int movementRange = entity.Properties.MovementRange;
+        int attackRange = entity.Properties.AttackRange;
+        MoveOverlay.Show(movementRange, attackRange, _cursorPosition, Tiles, Entities);
+        MovementArrow.Start(movementRange, _cursorPosition, Tiles, MoveOverlay.MovementPoints);
     }
 
-    public void CancelPath()
+    public void CancelCursorClick()
     {
+        _makingAMove = false;
+        MoveOverlay.Hide();
         MovementArrow.Cancel();
     }
 }

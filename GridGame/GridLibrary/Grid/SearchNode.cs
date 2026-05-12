@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace GridLibrary.Grid;
 
-public class DecisionGraphNode
+public class SearchNode
 {
     // keep this updated with current lowest number
     public int StepsToReach { get; set; } = int.MaxValue;

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Grid;
 
@@ -36,8 +39,63 @@ public static class SpriteBatchExtensions
                     layerDepth: 1.0f);
             }
         }
+        spriteBatch.Draw(grid.MoveOverlay, grid.Scalar, grid.TileSize);
         spriteBatch.Draw(grid.MovementArrow, grid.Scalar, grid.TileSize);
+        spriteBatch.Draw(grid.Entities, grid.Scalar, grid.TileSize);
         spriteBatch.Draw(grid.Cursor);
+    }
+
+    public static void Draw(this SpriteBatch spriteBatch, Dictionary<Point, IEntity> entities, int scalar, int tileSize)
+    {
+        Vector2 scale = Vector2.One * scalar;
+        foreach((Point position, IEntity entity) in entities)
+        {
+            Vector2 positionVector = position.ToVector2() * scalar * tileSize;
+            spriteBatch.Draw(
+                textureRegion: entity.Properties.Texture,
+                positionVector,
+                Color.White,
+                rotation: 0,
+                origin: Vector2.Zero,
+                scale: scale,
+                SpriteEffects.None,
+                layerDepth: 1.0f);
+        }
+    }
+
+    public static void Draw<T>(this SpriteBatch spriteBatch, MoveOverlay<T> moveOverlay, int scalar, int tileSize) where T : struct, Enum
+    {
+        if (!moveOverlay.IsVisible)
+            return;
+
+        Vector2 scale = Vector2.One * scalar;
+        foreach(Point point in moveOverlay.MovementPoints)
+        {
+            Vector2 position = point.ToVector2() * scalar * tileSize;
+            spriteBatch.Draw(
+                    textureRegion: moveOverlay.MovementTexture,
+                    position,
+                    Color.White * 0.85f,
+                    rotation: 0,
+                    origin: Vector2.Zero,
+                    scale: scale,
+                    SpriteEffects.None,
+                    layerDepth: 1.0f);
+        }
+
+        foreach(Point point in moveOverlay.AttackPoints)
+        {
+            Vector2 position = point.ToVector2() * scalar * tileSize;
+            spriteBatch.Draw(
+                    textureRegion: moveOverlay.AttackTexture,
+                    position,
+                    Color.White * 0.85f,
+                    rotation: 0,
+                    origin: Vector2.Zero,
+                    scale: scale,
+                    SpriteEffects.None,
+                    layerDepth: 1.0f);
+        }
     }
 
     public static void Draw(this SpriteBatch spriteBatch, Cursor cursor)
