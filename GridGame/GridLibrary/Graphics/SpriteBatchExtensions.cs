@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Grid;
+using GridLibrary.UI;
 
 namespace Microsoft.Xna.Framework.Graphics;
 
@@ -41,18 +41,24 @@ public static class SpriteBatchExtensions
         }
         spriteBatch.Draw(grid.MoveOverlay, grid.Scalar, grid.TileSize);
         spriteBatch.Draw(grid.MovementArrow, grid.Scalar, grid.TileSize);
-        spriteBatch.Draw(grid.Entities, grid.Scalar, grid.TileSize);
+        spriteBatch.DrawEnemyAttackPoints(grid.EnemyAttackPoints, grid.EnemyMoveOverlayTexture, grid.Scalar, grid.TileSize);
+        spriteBatch.Draw(grid.Entities, grid.Scalar, grid.TileSize, grid.ContextMenu.Font);
         spriteBatch.Draw(grid.Cursor);
     }
 
-    public static void Draw(this SpriteBatch spriteBatch, Dictionary<Point, IEntity> entities, int scalar, int tileSize)
+    public static void Draw(
+        this SpriteBatch spriteBatch,
+        Dictionary<Point, IEntity> entities,
+        int scalar,
+        int tileSize,
+        SpriteFont? debugFont = null)
     {
         Vector2 scale = Vector2.One * scalar;
         foreach((Point position, IEntity entity) in entities)
         {
             Vector2 positionVector = position.ToVector2() * scalar * tileSize;
             spriteBatch.Draw(
-                textureRegion: entity.Properties.Texture,
+                textureRegion: entity.Texture,
                 positionVector,
                 Color.White,
                 rotation: 0,
@@ -60,6 +66,38 @@ public static class SpriteBatchExtensions
                 scale: scale,
                 SpriteEffects.None,
                 layerDepth: 1.0f);
+            
+            if (debugFont is not null)
+            {
+                Vector2 fontPosition = positionVector - new Vector2(0, debugFont.LineSpacing);
+                spriteBatch.DrawString(debugFont, entity.Health.ToString(), fontPosition, Color.Black);
+            }
+        }
+    }
+
+    public static void DrawEnemyAttackPoints(
+        this SpriteBatch spriteBatch,
+        HashSet<Point> enemyAttackPoints,
+        TextureRegion movementTexture,
+        int scalar,
+        int tileSize)
+    {
+        if (enemyAttackPoints.Count is 0)
+            return;
+
+        Vector2 scale = Vector2.One * scalar;
+        foreach (Point point in enemyAttackPoints)
+        {
+            Vector2 position = point.ToVector2() * scalar * tileSize;
+            spriteBatch.Draw(
+                    textureRegion: movementTexture,
+                    position,
+                    Color.White * 0.5f,
+                    rotation: 0,
+                    origin: Vector2.Zero,
+                    scale: scale,
+                    SpriteEffects.None,
+                    layerDepth: 1.0f);
         }
     }
 

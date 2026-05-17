@@ -11,6 +11,7 @@ using GridLibrary.Grid;
 using GridLibrary.Input;
 using GridLibrary.Ldtk;
 using GridLibrary.Scenes;
+using GridLibrary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -26,7 +27,8 @@ public class MenzobaraRiverScene(
     LdtkImporter ldtkImporter,
     Camera camera,
     KeyboardInfo keyboardInfo,
-    AssetManager assetManager) : Scene
+    AssetManager assetManager,
+    UIRoot uiFactory) : Scene
 {
     private readonly AudioController _audio = audioController;
     private readonly SpriteBatch _spriteBatch = spriteBatch;
@@ -36,6 +38,7 @@ public class MenzobaraRiverScene(
     private readonly Camera _camera = camera;
     private readonly KeyboardInfo _keyboardInfo = keyboardInfo;
     private readonly AssetManager _assetManager = assetManager;
+    private readonly UIRoot _uiRoot = uiFactory;
     private readonly FrameCounter _frameCounter = new();
     private Grid<TileType> _grid;
     private SpriteFont _font;
@@ -43,6 +46,7 @@ public class MenzobaraRiverScene(
 
     private static readonly TimeSpan MoveDelay = TimeSpan.FromMilliseconds(100);
     private bool _showGrid = false;
+    private UIElement _testUIElement;
 
     public override void Initialize()
     {
@@ -155,6 +159,59 @@ public class MenzobaraRiverScene(
         };
         Dictionary<Point, IEntity> entities = EntityFactory.CreateLayerEntities(entityLayer, identifierToTexture);
 
+        TextureRegion menuTexture = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(64, 0, 32, 48)
+        };
+        int menuScalar = 4;
+
+        TextureRegion movePreviewTexture = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(64, 48, 64, 48)
+        };
+
+        MovePreview movePreview = new()
+        {
+            Font = _font
+        };
+        _uiRoot
+            .AddToRoot<MovePreview>(movePreview)
+            .SetTexture<MovePreview>(movePreviewTexture)
+            .SetWidth<MovePreview>(movePreviewTexture.Width * menuScalar, UIUnit.Pixels)
+            .SetHeight<MovePreview>(movePreviewTexture.Height * menuScalar, UIUnit.Pixels)
+            .PadHorizontal<MovePreview>(4, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
+            .PadVertical<MovePreview>(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
+            .SetIsVisible<MovePreview>(false);
+        
+        TextureRegion focusTexture = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(96, 0, 28, 1)
+        };
+        ContextMenu contextMenu = new()
+        {
+            FocusTexture = focusTexture,
+            KeyboardInfo = _keyboardInfo,
+            MovePreview = movePreview,
+            Font = _font,
+        };
+        _uiRoot
+            .AddToRoot<ContextMenu>(contextMenu)
+            .SetTexture<ContextMenu>(menuTexture)
+            .SetWidth<UIElement>(menuScalar * menuTexture.Width, UIUnit.Pixels)
+            .SetHeight<UIElement>(menuScalar * menuTexture.Height, UIUnit.Pixels)
+            .PadHorizontal<ContextMenu>(4, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
+            .PadVertical<ContextMenu>(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
+            .SetIsVisible<ContextMenu>(false);
+
+        TextureRegion enemyMoveOverlayTexture = new ()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(48, 64, 16, 16)
+        };
+
         _grid = new Grid<TileType>(
             ldtkProjectFile,
             levelName,
@@ -164,7 +221,10 @@ public class MenzobaraRiverScene(
             cursor,
             movementArrow,
             moveOverlay,
+            enemyMoveOverlayTexture,
+            contextMenu,
             entities,
+            _uiRoot,
             (point, texture, tileType) => new RiverGridTile(point, texture, tileType),
             (point, animation, tileType) => new AnimatedRiverGridTile(point, animation, tileType));
         
@@ -175,7 +235,10 @@ public class MenzobaraRiverScene(
             Width = level.LayerWidth * _grid.Scalar,
             Height = level.LayerHeight * _grid.Scalar
         };
+
         stopwatch.Stop();
+
+
         Debug.WriteLine(stopwatch.Elapsed);
     }
 
@@ -188,41 +251,10 @@ public class MenzobaraRiverScene(
     {
         if (_keyboardInfo.WasKeyJustPressed(Keys.H))
             _sceneManager.ChangeScene<OtherScene>();
-        if (_keyboardInfo.WasKeyJustPressed(Keys.Down) ||
-            _keyboardInfo.IsKeyHeldDown(Keys.Down, MoveDelay))
-        {
-            _keyboardInfo.ResetKeyHold(Keys.Down);
-            _grid.MoveCursorDown(_camera);
-        }
-        if (_keyboardInfo.WasKeyJustPressed(Keys.Up) ||
-            _keyboardInfo.IsKeyHeldDown(Keys.Up, MoveDelay))
-        {
-            _keyboardInfo.ResetKeyHold(Keys.Up);
-            _grid.MoveCursorUp(_camera);
-        }
-        if (_keyboardInfo.WasKeyJustPressed(Keys.Right) ||
-            _keyboardInfo.IsKeyHeldDown(Keys.Right, MoveDelay))
-        {   
-            _keyboardInfo.ResetKeyHold(Keys.Right);
-            _grid.MoveCursorRight(_camera);
-        }
-        if (_keyboardInfo.WasKeyJustPressed(Keys.Left) ||
-            _keyboardInfo.IsKeyHeldDown(Keys.Left, MoveDelay))
-        {
-            _keyboardInfo.ResetKeyHold(Keys.Left);
-            _grid.MoveCursorLeft(_camera);
-        }
-        if (_keyboardInfo.WasKeyJustPressed(Keys.Z))
-        {
-            _grid.CursorClick();
-        }
-        if (_keyboardInfo.WasKeyJustPressed(Keys.X))
-        {
-            _grid.CancelCursorClick();
-        }
+        
         TileType tileType = _grid.ActiveTile.TileType;
         _activeTileInfo = tileType.GetTileInfo();
-        _grid.Update(gameTime);
+        
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
         // if (_keyboardInfo.WasKeyJustPressed(Keys.OemPlus) ||
@@ -235,6 +267,7 @@ public class MenzobaraRiverScene(
         {
             ToggleGrid();
         }
+        _grid.Update(gameTime, _keyboardInfo, _camera);
     }
 
     public override void Draw(GameTime gameTime)
@@ -245,7 +278,7 @@ public class MenzobaraRiverScene(
         _spriteBatch.Draw(_grid, _showGrid);
         _spriteBatch.End();
 
-        _spriteBatch.Begin(samplerState: SamplerState.AnisotropicClamp);
+        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         _spriteBatch.DrawString(_font, _activeTileInfo.ToString(_grid.Cursor.Position), Vector2.Zero, Color.White);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _frameCounter.Update(deltaTime);

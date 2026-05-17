@@ -13,8 +13,7 @@ public class RegisterServices
     public static GridGame Register()
     {
         GameBuilder<GridGame> gameBuilder = new();
-        gameBuilder.Services.AddSingleton<SpriteBatch>();
-        gameBuilder.Services.AddSingleton(new AudioController());
+        
         gameBuilder.Services.AddSingleton<AssetManager>();
         gameBuilder.Services.AddTransient<MenzobaraRiverScene>();
         gameBuilder.Services.AddTransient<OtherScene>();

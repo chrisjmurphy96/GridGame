@@ -1,6 +1,7 @@
 ﻿using System;
 using GridLibrary.Input;
 using GridLibrary.Scenes;
+using GridLibrary.UI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xna.Framework;
 
@@ -13,6 +14,8 @@ public class Core : Game
 
     protected SceneManager _sceneManager;
     protected KeyboardInfo _keyboardInfo;
+    private UIRoot _uiRoot;
+
 
     public Core()
     {
@@ -51,9 +54,11 @@ public class Core : Game
     {
         ServiceCollection.AddSingleton<SceneManager>();
         ServiceCollection.AddSingleton<KeyboardInfo>();
+        ServiceCollection.AddSingleton<UIRoot>();
         ServiceProvider serviceProvider = ServiceCollection.BuildServiceProvider();
         _sceneManager = serviceProvider.GetService<SceneManager>() ?? throw new Exception($"Failed to create {nameof(SceneManager)}");
         _keyboardInfo = serviceProvider.GetService<KeyboardInfo>() ?? throw new Exception($"Failed to create {nameof(KeyboardInfo)}");
+        _uiRoot = serviceProvider.GetService<UIRoot>() ?? throw new Exception($"Failed to create {nameof(UIRoot)}");
         _sceneManager.ChangeScene<T>();
         return serviceProvider;
     } 
@@ -72,6 +77,7 @@ public class Core : Game
         // update keyboard first since scenes will use it
         _keyboardInfo.Update(gameTime);
         _sceneManager.Update(gameTime);
+        _uiRoot.Update(gameTime);
 
         base.Update(gameTime);
     }
@@ -80,6 +86,8 @@ public class Core : Game
     {
         // If there is an active scene, draw it.
         _sceneManager.Draw(gameTime);
+        // If there are any UI elements, draw them.
+        _uiRoot.Draw();
 
         base.Draw(gameTime);
     }

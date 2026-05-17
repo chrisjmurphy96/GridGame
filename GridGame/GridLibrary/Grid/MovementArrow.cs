@@ -9,12 +9,9 @@ namespace GridLibrary.Grid;
 public class MovementArrow<T> where T : struct, Enum
 {
     public Point StartPosition { get; private set; } = Point.Zero;
-    public Point EndPosition { get; private set; } = Point.Zero;
     public List<Point> Path { get; private set; } = [];
     private GridTileList<T> _gridTiles = new (0);
     private int _maxMovement = 0;
-    private HashSet<Point> _walkableSpace = [];
-    private Point? _previousEnd = null;
 
     public required TextureRegion HeadTexture { get; init; }
     public required TextureRegion StraightTexture { get; init; }
@@ -23,7 +20,7 @@ public class MovementArrow<T> where T : struct, Enum
 
     public bool IsVisible { get; private set; } = false;
 
-    public void Start(int maxMovement, Point start, GridTileList<T> gridTiles, HashSet<Point> walkableSpace)
+    public void Start(int maxMovement, Point start, GridTileList<T> gridTiles)
     {
         // If the cursor is currently in an unwalkable area, don't start the path.
         GridTile<T> startTile = gridTiles[start];
@@ -31,30 +28,24 @@ public class MovementArrow<T> where T : struct, Enum
             return;
 
         StartPosition = start;
-        EndPosition = start;
         IsVisible = true;
         Path = [start];
         _gridTiles = gridTiles;
         _maxMovement = maxMovement;
-        _walkableSpace = walkableSpace;
     }
 
     public void Cancel()
     {
         StartPosition = Point.Zero;
-        EndPosition = Point.Zero;
         IsVisible = false;
         Path = [];
-        _previousEnd = null;
         _maxMovement = 0;
-        _walkableSpace = [];
     }
 
     public void Update(Point end, HashSet<Point> walkableSpace)
     {
         if (IsVisible)
             Search(end, walkableSpace);
-        _previousEnd = end;
     }
     
     private void Search(Point end, HashSet<Point> walkableSpace)
@@ -74,6 +65,6 @@ public class MovementArrow<T> where T : struct, Enum
         if (Path.Last() == end)
             return;
 
-        Path = Dijkstra.Search<T>(StartPosition, end, _maxMovement, walkableSpace) ?? Path;
+        Path = Dijkstra.FindShortestPath<T>(StartPosition, end, _maxMovement, walkableSpace) ?? Path;
     }
 }

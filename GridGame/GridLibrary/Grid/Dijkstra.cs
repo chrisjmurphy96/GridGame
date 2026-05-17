@@ -16,7 +16,7 @@ public static class Dijkstra
 {
     private const int MAX_ITERATIONS = 200;
 
-    public static List<Point>? Search<T>(
+    public static List<Point>? FindShortestPath<T>(
         Point start,
         Point end,
         int maxMovement,
@@ -102,7 +102,8 @@ public static class Dijkstra
         Point start,
         int maxMovement,
         GridTileList<T> gridTiles,
-        Dictionary<Point, IEntity> entities) where T : struct, Enum
+        Dictionary<Point, IEntity> entities,
+        bool forEnemy = false) where T : struct, Enum
     {
         Dictionary<Point, ReachableNode> exploredSpace = new()
         {
@@ -127,9 +128,12 @@ public static class Dijkstra
                 if (!gridTiles[neighbor].GetTileInfo().CanWalk)
                     continue;
 
+                // This reads a bit confusingly, but basically if we're calculating
+                // for friendly units, other friendly units are valid walking spaces,
+                // but not enemies, and vice versa for enemy units.
                 if (entities.TryGetValue(neighbor, out IEntity? entity) &&
                     entity is not null &&
-                    !entity.Properties.IsFriendly)
+                    entity.IsFriendly == forEnemy)
                     continue;
 
                 int newStepsToReach = currentNode.StepsToReach + 1;
@@ -176,7 +180,7 @@ public static class Dijkstra
         return attackPoints;
     }
 
-    private static HashSet<Point> GetReachable<T>(Point start, int range, GridTileList<T> gridTiles) where T : struct, Enum
+    public static HashSet<Point> GetReachable<T>(Point start, int range, GridTileList<T> gridTiles) where T : struct, Enum
     {
         Dictionary<Point, ReachableNode> exploredSpace = new()
         {

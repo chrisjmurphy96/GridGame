@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using GridGame.Core.AttackMoves;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 
@@ -7,18 +9,27 @@ public class Goblin : IEntity
 {
     public static string LdtkIdentifier => "Goblin";
 
-    public StandardEntityProperties Properties { get; }
+    public string DisplayName => "Gobbo";
+    public TextureRegion Texture { get; }
+    public EntityHealth Health { get; } = new EntityHealth(30);
+    public int MovementRange => 5;
+    public bool IsFriendly => false;
+    public bool IsPlayerControllable => false;
+
+    public IMove DefaultAttack { get; }
+
+    public List<IMove> Moves { get; }
 
     public Goblin(TextureRegion textureRegion)
     {
-        Properties = new()
+        Texture = textureRegion;
+        DefaultAttack = new MeleeAttack
         {
-            Texture = textureRegion,
-            Health = 30,
-            AttackRange = 1,
-            MovementRange = 5,
-            IsFriendly = false,
-            IsPlayerControllable = false
+            Name = "Gobbo Attack",
+            Damage = 5,
+            HitChance = 65,
+            CritChance = 3
         };
+        Moves = [new WaitMove(), DefaultAttack];
     }
 }

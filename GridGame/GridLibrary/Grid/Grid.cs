@@ -1,15 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
+using GridLibrary.Input;
 using GridLibrary.Ldtk;
+using GridLibrary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace GridLibrary.Grid;
 
+/// <summary>
+/// I am heavily considering making the grid a UI element.
+/// Only problem is, a lot of the default UI element stuff
+/// doesn't really make sense. The only real benefit I'd get
+/// is some code boiler plate reduction and proper IsFocused logic.
+/// </summary>
 public class Grid<tileType> where tileType : struct, Enum
 {
     public GridTileList<tileType> Tiles { get; }
@@ -21,16 +31,23 @@ public class Grid<tileType> where tileType : struct, Enum
     public Cursor Cursor { get; }
     public MovementArrow<tileType> MovementArrow { get; }
     public MoveOverlay<tileType> MoveOverlay { get; }
+    public TextureRegion EnemyMoveOverlayTexture { get; }
+    public ContextMenu ContextMenu { get; }
     public Dictionary<Point, IEntity> Entities { get; }
+
+    private readonly UIRoot _uiRoot;
 
     public int Columns => Map.GetTileLayer().Columns;
     public int Rows => Map.GetTileLayer().Rows;
 
     private Point _cursorPosition = Point.Zero;
     private (Point position, IEntity entity) _activeEntity;
-    private bool _makingAMove = false;
+    private bool ChoosingWhereToMove => MoveOverlay.IsVisible;
     private readonly Func<Point, TextureRegion, tileType, GridTile<tileType>> _gridTileFactory;
     private readonly Func<Point, Animation, tileType, AnimatedGridTile<tileType>> _animatedGridTileFactory;
+    private readonly static TimeSpan MOVE_DELAY = TimeSpan.FromMilliseconds(100);
+    public List<MoveOverlay<tileType>> EnemyMoveOverlays { get; } = [];
+    public HashSet<Point> EnemyAttackPoints { get; } = [];
 
     public GridTile<tileType> ActiveTile => Tiles[_cursorPosition];
     
@@ -43,7 +60,10 @@ public class Grid<tileType> where tileType : struct, Enum
         Cursor cursor,
         MovementArrow<tileType> movementArrow,
         MoveOverlay<tileType> moveOverlay,
+        TextureRegion enemyMoveOverlayTexture,
+        ContextMenu contextMenu,
         Dictionary<Point, IEntity> entities,
+        UIRoot uiRoot,
         Func<Point, TextureRegion, tileType, GridTile<tileType>> gridTileFactory,
         Func<Point, Animation, tileType, AnimatedGridTile<tileType>> animatedGridTileFactory)
     {
@@ -54,7 +74,10 @@ public class Grid<tileType> where tileType : struct, Enum
         Cursor = cursor;
         MovementArrow = movementArrow;
         MoveOverlay = moveOverlay;
+        EnemyMoveOverlayTexture = enemyMoveOverlayTexture;
+        ContextMenu = contextMenu;
         Entities = entities;
+        _uiRoot = uiRoot;
         _gridTileFactory = gridTileFactory;
         _animatedGridTileFactory = animatedGridTileFactory;
         LdtkLayerInstance layerInstance = Map.GetTileLayer();
@@ -125,16 +148,96 @@ public class Grid<tileType> where tileType : struct, Enum
         return _gridTileFactory(ldtkGridTile.Position, texture, tileType);
     }
 
-    public void Update(GameTime gameTime)
+    public void Update(GameTime gameTime, KeyboardInfo keyboardInfo, Camera camera)
     {
         Cursor.Update(gameTime);
         foreach (GridTile<tileType> gridTile in Tiles)
             gridTile.Update(gameTime);
+        UpdateEnemyOverlay();
+
+        // ContextMenu.Update(Entities, _activeEntity.position, Tiles);
+        if (ContextMenu.IsFocused || ContextMenu.MovePreview.IsFocused)
+        {
+            // if (keyboardInfo.WasKeyJustPressed(Keys.X))
+            //     ContextMenu.Close();
+            // else // I'm pretty sure this isn't what I want, but let's just see the menu for now
+            return;
+        }
+
+        if (keyboardInfo.WasKeyJustPressed(Keys.Down) ||
+            keyboardInfo.IsKeyHeldDown(Keys.Down, MOVE_DELAY))
+        {
+            keyboardInfo.ResetKeyHold(Keys.Down);
+            MoveCursorDown(camera);
+        }
+        if (keyboardInfo.WasKeyJustPressed(Keys.Up) ||
+            keyboardInfo.IsKeyHeldDown(Keys.Up, MOVE_DELAY))
+        {
+            keyboardInfo.ResetKeyHold(Keys.Up);
+            MoveCursorUp(camera);
+        }
+        if (keyboardInfo.WasKeyJustPressed(Keys.Right) ||
+            keyboardInfo.IsKeyHeldDown(Keys.Right, MOVE_DELAY))
+        {   
+            keyboardInfo.ResetKeyHold(Keys.Right);
+            MoveCursorRight(camera);
+        }
+        if (keyboardInfo.WasKeyJustPressed(Keys.Left) ||
+            keyboardInfo.IsKeyHeldDown(Keys.Left, MOVE_DELAY))
+        {
+            keyboardInfo.ResetKeyHold(Keys.Left);
+            MoveCursorLeft(camera);
+        }
+        if (keyboardInfo.WasKeyJustPressed(Keys.Z))
+        {
+            CursorClick(gameTime);
+        }
+        if (keyboardInfo.WasKeyJustPressed(Keys.X))
+        {
+            CancelCursorClick();
+        }
+        if (keyboardInfo.WasKeyJustPressed(Keys.O))
+        {
+            ToggleEnemyOverlay();
+        }
+    }
+
+    public bool ShowEnemyOverlay { get; private set; } = false;
+
+    private void ToggleEnemyOverlay()
+    {
+        ShowEnemyOverlay = !ShowEnemyOverlay;
+    }
+
+    /// <summary>
+    /// This could probably be its own class, but for now just letting it live here.
+    /// The available attack points can change as friendly units move, so this needs to
+    /// be recalculated each update cycle.
+    /// </summary>
+    private void UpdateEnemyOverlay()
+    {
+        EnemyAttackPoints.Clear();
+        if (!ShowEnemyOverlay)
+        {
+            return;
+        }
+
+        foreach((Point entityPosition, IEntity entity) in Entities)
+        {
+            if (entity.IsFriendly)
+                continue;
+
+            // TODO: Could add clicking a singular enemy entity shows just their range.
+            HashSet<Point> walkable = Dijkstra.GetWalkable<tileType>(entityPosition, entity.MovementRange, Tiles, Entities, forEnemy: true);
+            HashSet<Point> attackable = Dijkstra.GetAttackable<tileType>(entity.DefaultAttack.Range, walkable, Tiles);
+            EnemyAttackPoints.UnionWith(walkable);
+            EnemyAttackPoints.UnionWith(attackable);
+        }
     }
 
     public void MoveCursorUp(Camera camera)
     {
-        if (_cursorPosition.Y > 0)
+        if (_cursorPosition.Y > 0 && !ContextMenu.IsFocused)
         {
             _cursorPosition = _cursorPosition.Up();
             Cursor.MoveUp(camera);
@@ -144,7 +247,7 @@ public class Grid<tileType> where tileType : struct, Enum
 
     public void MoveCursorDown(Camera camera)
     {
-        if (_cursorPosition.Y < (Rows - 1))
+        if (_cursorPosition.Y < (Rows - 1) && !ContextMenu.IsFocused)
         {
             _cursorPosition = _cursorPosition.Down();
             Cursor.MoveDown(camera);
@@ -154,7 +257,7 @@ public class Grid<tileType> where tileType : struct, Enum
 
     public void MoveCursorRight(Camera camera)
     {
-        if (_cursorPosition.X < (Columns - 1))
+        if (_cursorPosition.X < (Columns - 1) && !ContextMenu.IsFocused)
         {
             _cursorPosition = _cursorPosition.Right();
             Cursor.MoveRight(camera);
@@ -164,7 +267,7 @@ public class Grid<tileType> where tileType : struct, Enum
 
     public void MoveCursorLeft(Camera camera)
     {
-        if (_cursorPosition.X > 0)
+        if (_cursorPosition.X > 0 && !ContextMenu.IsFocused)
         {
             _cursorPosition = _cursorPosition.Left();
             Cursor.MoveLeft(camera);
@@ -172,50 +275,60 @@ public class Grid<tileType> where tileType : struct, Enum
         }
     }
 
-    /// <summary>
-    /// Does nothing if the player is already making a move. They should cancel or complete the current move first.
-    /// </summary>
-    public void CursorClick()
+    private void HandleMoveSelection()
     {
+        IMove move = ContextMenu.Moves[ContextMenu.FocusIndex];
+        Point endPosition = MovementArrow.Path.Last();
+        move.PerformMove(Entities, endPosition, _cursorPosition);
+        Entities.Remove(_activeEntity.position);
+        Entities.Add(endPosition, _activeEntity.entity);
+        ContextMenu.Close();
+        CancelCursorClick();
+    }
+
+    /// <summary>
+    /// - If context menu is visible, do nothing. They need to cancel it or choose a move.
+    /// - If the player has chosen where to move a character, show the context menu.
+    /// - If the player has selected a controllable character, start the movement action.
+    /// </summary>
+    public void CursorClick(GameTime gameTime)
+    {
+        if (ContextMenu.IsVisible)
+            return;
+
         Entities.TryGetValue(_cursorPosition, out IEntity? entity);
-        // TODO: this should bring up a menu instead.
-        if (_makingAMove)
+        if (ChoosingWhereToMove)
         {
-            if (entity is not null)
+            if (!MoveOverlay.MovementPoints.Contains(_cursorPosition))
+                return;
+            if (!ContextMenu.IsVisible)
             {
-                // check if we're making an attack
-                if (!entity.Properties.IsFriendly)
-                {
-                    // TODO
-                }
+                ContextMenu.Open(
+                    _activeEntity.entity,
+                    _cursorPosition,
+                    gameTime,
+                    HandleMoveSelection,
+                    Tiles);
+                UIRoot.Focus(ContextMenu);
             }
-            // check if we're just doing normal movement
-            else if (MoveOverlay.MovementPoints.Contains(_cursorPosition))
-            {
-                Entities.Remove(_activeEntity.position);
-                Entities.Add(_cursorPosition, _activeEntity.entity);
-            }
-            CancelCursorClick();
             return;
         }
 
         if (entity is null ||
-            !entity.Properties.IsPlayerControllable)
+            !entity.IsPlayerControllable)
         {
             return;
         }
 
-        _makingAMove = true;
         _activeEntity = (_cursorPosition, entity);
-        int movementRange = entity.Properties.MovementRange;
-        int attackRange = entity.Properties.AttackRange;
+        int movementRange = entity.MovementRange;
+        int attackRange = entity.DefaultAttack.Range;
         MoveOverlay.Show(movementRange, attackRange, _cursorPosition, Tiles, Entities);
-        MovementArrow.Start(movementRange, _cursorPosition, Tiles, MoveOverlay.MovementPoints);
+        MovementArrow.Start(movementRange, _cursorPosition, Tiles);
     }
 
     public void CancelCursorClick()
     {
-        _makingAMove = false;
         MoveOverlay.Hide();
         MovementArrow.Cancel();
     }

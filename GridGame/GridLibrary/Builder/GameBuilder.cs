@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using GridLibrary.Scenes;
+using Microsoft.Xna.Framework.Graphics;
+using MonoGameLibrary.Audio;
 
 namespace GridLibrary.Builder;
 
@@ -13,6 +15,8 @@ public class GameBuilder<T> where T : Core, new()
         _game = new ();
         _game.ServiceCollection.AddSingleton(_game.GraphicsDevice);
         _game.ServiceCollection.AddSingleton(_game.Content);
+        _game.ServiceCollection.AddSingleton<SpriteBatch>();
+        _game.ServiceCollection.AddSingleton(new AudioController());
     }
 
     public void SetScreen(string title, int width, int height, bool fullScreen)
