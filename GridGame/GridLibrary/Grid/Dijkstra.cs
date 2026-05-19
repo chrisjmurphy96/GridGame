@@ -16,11 +16,11 @@ public static class Dijkstra
 {
     private const int MAX_ITERATIONS = 200;
 
-    public static List<Point>? FindShortestPath<T>(
+    public static List<Point>? FindShortestPath(
         Point start,
         Point end,
         int maxMovement,
-        HashSet<Point> walkableSpace) where T : struct, Enum
+        HashSet<Point> walkableSpace)
     {
         int distance = start.DistanceTo(end);
         if (distance > maxMovement)
@@ -98,12 +98,12 @@ public static class Dijkstra
         return solution;
     }
 
-    public static HashSet<Point> GetWalkable<T>(
+    public static HashSet<Point> GetWalkable(
         Point start,
         int maxMovement,
-        GridTileList<T> gridTiles,
+        GridTileList gridTiles,
         Dictionary<Point, IEntity> entities,
-        bool forEnemy = false) where T : struct, Enum
+        bool forEnemy = false)
     {
         Dictionary<Point, ReachableNode> exploredSpace = new()
         {
@@ -125,7 +125,7 @@ public static class Dijkstra
                 if (!gridTiles.InBounds(neighbor))
                     continue;
 
-                if (!gridTiles[neighbor].GetTileInfo().CanWalk)
+                if (!gridTiles[neighbor].TileInfo.CanWalk)
                     continue;
 
                 // This reads a bit confusingly, but basically if we're calculating
@@ -159,7 +159,7 @@ public static class Dijkstra
         return [.. exploredSpace.Select(node => node.Key)];
     }
 
-    public static HashSet<Point> GetAttackable<T>(int attackRange, HashSet<Point> walkablePoints, GridTileList<T> gridTiles) where T : struct, Enum
+    public static HashSet<Point> GetAttackable(int attackRange, HashSet<Point> walkablePoints, GridTileList gridTiles)
     {
         HashSet<Point> attackPoints = [];
         foreach(Point point in walkablePoints)
@@ -171,7 +171,7 @@ public static class Dijkstra
                 if (walkablePoints.Contains(neighbor))
                     continue;
 
-                IEnumerable<Point> reachable = GetReachable<T>(neighbor, attackRange, gridTiles)
+                IEnumerable<Point> reachable = GetReachable(neighbor, attackRange, gridTiles)
                     .Where(reachablePoint => !walkablePoints.Contains(reachablePoint) && gridTiles.InBounds(reachablePoint));
                 attackPoints.UnionWith(reachable);
             }
@@ -180,7 +180,7 @@ public static class Dijkstra
         return attackPoints;
     }
 
-    public static HashSet<Point> GetReachable<T>(Point start, int range, GridTileList<T> gridTiles) where T : struct, Enum
+    public static HashSet<Point> GetReachable(Point start, int range, GridTileList gridTiles)
     {
         Dictionary<Point, ReachableNode> exploredSpace = new()
         {

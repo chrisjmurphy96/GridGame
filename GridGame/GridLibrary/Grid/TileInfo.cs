@@ -8,6 +8,8 @@ public class TileInfo
     public int ArmorModifier { get; init; } = 0;
     public bool CanWalk { get; init; } = true;
 
+    public static readonly TileInfo Default = new();
+
     public override string ToString()
     {
         return 

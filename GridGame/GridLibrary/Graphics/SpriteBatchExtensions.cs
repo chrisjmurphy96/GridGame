@@ -9,10 +9,10 @@ namespace Microsoft.Xna.Framework.Graphics;
 
 public static class SpriteBatchExtensions
 {
-    public static void Draw<T>(this SpriteBatch spriteBatch, Grid<T> grid, bool drawGridOverlay = false) where T : struct, Enum
+    public static void Draw(this SpriteBatch spriteBatch, Grid grid, bool drawGridOverlay = false)
     {
         Vector2 scale = Vector2.One * grid.Scalar;
-        foreach(GridTile<T> gridTile in grid.Tiles)
+        foreach(GridTile gridTile in grid.Tiles)
         {
             Vector2 position = gridTile.Position.ToVector2() * grid.Scalar;
             spriteBatch.Draw(
@@ -101,7 +101,7 @@ public static class SpriteBatchExtensions
         }
     }
 
-    public static void Draw<T>(this SpriteBatch spriteBatch, MoveOverlay<T> moveOverlay, int scalar, int tileSize) where T : struct, Enum
+    public static void Draw(this SpriteBatch spriteBatch, MoveOverlay moveOverlay, int scalar, int tileSize)
     {
         if (!moveOverlay.IsVisible)
             return;

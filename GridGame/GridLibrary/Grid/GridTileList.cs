@@ -9,20 +9,25 @@ namespace GridLibrary.Grid;
 /// Honestly for right now I only care about it for the utility of always being able to grab the index
 /// without re-implementing the index every time.
 /// </summary>
-public class GridTileList<T>(int columns) : List<GridTile<T>>() where T : struct, Enum
+public class GridTileList : List<GridTile>
 {
     /// <summary>
     /// Gets the grid tile at column and row.
     /// </summary>
-    public GridTile<T> this[int column, int row] => this[GetIndex(column, row)];
+    public GridTile this[int column, int row] => this[GetIndex(column, row)];
 
-    public GridTile<T> this[Point point] => this[point.X, point.Y];
-
-    private int Rows => Count / _columns;
+    public GridTile this[Point point] => this[point.X, point.Y];
 
     public bool InBounds(Point point) => point.Y >= 0 && point.Y < Rows && point.X >= 0 && point.X < _columns;
 
-    private readonly int _columns = columns;
+    private readonly int _columns;
+    private int Rows => Count > 0 ? Count / _columns : 0;
+
+    public GridTileList(int columns) : base()
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(columns);
+        _columns = columns;
+    }
 
     private int GetIndex(int column, int row) => (row * _columns) + column;
 }

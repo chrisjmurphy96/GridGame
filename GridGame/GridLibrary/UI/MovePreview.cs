@@ -41,7 +41,6 @@ public class MovePreview : UIElement
     public void Close()
     {
         SetIsVisible<MovePreview>(false);
-        // UIRoot.Unfocus();
         Move = null;
         Performer = null;
         Receiver = null;

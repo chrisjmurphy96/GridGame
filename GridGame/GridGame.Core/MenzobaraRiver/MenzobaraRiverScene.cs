@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using GridGame.Core.Entities;
-using GridGame.Core.Tiles;
 using GridLibrary;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
@@ -40,7 +39,7 @@ public class MenzobaraRiverScene(
     private readonly AssetManager _assetManager = assetManager;
     private readonly UIRoot _uiRoot = uiFactory;
     private readonly FrameCounter _frameCounter = new();
-    private Grid<TileType> _grid;
+    private Grid _grid;
     private SpriteFont _font;
     private TileInfo _activeTileInfo;
 
@@ -58,6 +57,10 @@ public class MenzobaraRiverScene(
     {
         Stopwatch stopwatch = new();
         stopwatch.Start();
+
+        GridState.Save();
+
+
         _font = _assetManager.Load<MenzobaraRiverScene, SpriteFont>(Path.Combine("Fonts", "Hud"));
         LdtkProjectFile ldtkProjectFile = _ldtkImporter.Import(Path.Combine("Images", "basic-map.ldtk"));
         string levelName = "Menzobara_River";
@@ -116,7 +119,7 @@ public class MenzobaraRiverScene(
             SourceRectangle = new Rectangle(x: 32, y: 16, width: 16, height: 16)
         };
 
-        MovementArrow<TileType> movementArrow = new()
+        MovementArrow movementArrow = new()
         {
             HeadTexture = arrowHead,
             StraightTexture = arrowBody,
@@ -135,7 +138,7 @@ public class MenzobaraRiverScene(
             SourceRectangle = new Rectangle(32, 48, 16, 16)
         };
 
-        MoveOverlay<TileType> moveOverlay = new ()
+        MoveOverlay moveOverlay = new ()
         {
             MovementTexture = movementOverlay,
             AttackTexture = attackOverlay
@@ -212,7 +215,15 @@ public class MenzobaraRiverScene(
             SourceRectangle = new Rectangle(48, 64, 16, 16)
         };
 
-        _grid = new Grid<TileType>(
+        Dictionary<string, TileInfo> enumNameToTileInfo = new()
+        {
+            { "Forest", new TileInfo { DodgeModifier = 20, ArmorModifier = 1 } },
+            { "River", new TileInfo { CanWalk = false } },
+            { "Bridge", TileInfo.Default },
+            { "Grass", TileInfo.Default }
+        };
+
+        _grid = new Grid(
             ldtkProjectFile,
             levelName,
             atlas,
@@ -224,9 +235,8 @@ public class MenzobaraRiverScene(
             enemyMoveOverlayTexture,
             contextMenu,
             entities,
-            _uiRoot,
-            (point, texture, tileType) => new RiverGridTile(point, texture, tileType),
-            (point, animation, tileType) => new AnimatedRiverGridTile(point, animation, tileType));
+            enumNameToTileInfo,
+            _uiRoot);
         
         _camera.CameraBounds = new()
         {
@@ -252,8 +262,7 @@ public class MenzobaraRiverScene(
         if (_keyboardInfo.WasKeyJustPressed(Keys.H))
             _sceneManager.ChangeScene<OtherScene>();
         
-        TileType tileType = _grid.ActiveTile.TileType;
-        _activeTileInfo = tileType.GetTileInfo();
+        _activeTileInfo = _grid.ActiveTile.TileInfo;
         
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();

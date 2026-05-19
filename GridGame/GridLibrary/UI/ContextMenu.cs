@@ -37,24 +37,34 @@ public class ContextMenu : UIElement
     public int FocusIndex { get; private set; } = 0;
     private EventHandler? _selectMove;
     private TimeSpan _showTime = TimeSpan.Zero;
+    private Action _hideMoveOverlay;
+    private Action _showMoveOverlay;
     private static readonly TimeSpan MENU_INTERACTION_DELAY = TimeSpan.FromMilliseconds(100);
     public bool PreviewingMove { get; private set; } = false;
     private readonly Dictionary<string, HashSet<Point>> _attackNameToAttackPoints = [];
 
-    public void Open<T>(IEntity performer, Point cursorPosition, GameTime gameTime, Action moveSelectCallback, GridTileList<T> gridTiles)
-        where T : struct, Enum
+    public void Open(
+        IEntity performer,
+        Point cursorPosition,
+        GameTime gameTime,
+        Action moveSelectCallback,
+        GridTileList gridTiles,
+        Action showMoveOverlay,
+        Action hideMoveOverlay)
     {
         _performer = performer;
         _cursorPosition = cursorPosition;
         SetIsVisible<ContextMenu>(true);
         _showTime = gameTime.TotalGameTime;
         _selectMove += (_, _) => moveSelectCallback();
+        _showMoveOverlay = showMoveOverlay;
+        _hideMoveOverlay = hideMoveOverlay;
 
         foreach (IMove move in _performer.Moves)
         {
             HashSet<Point> attackPoints = [];
             if (move.Range > 0)
-                attackPoints = Dijkstra.GetAttackable<T>(move.Range, [_cursorPosition.Value], gridTiles);
+                attackPoints = Dijkstra.GetAttackable(move.Range, [_cursorPosition.Value], gridTiles);
             _attackNameToAttackPoints.Add(move.Name, attackPoints);
         }
     }
@@ -108,11 +118,13 @@ public class ContextMenu : UIElement
                 success();
                 return;
             }
+            _hideMoveOverlay();
             SetIsVisible<ContextMenu>(false);
             MovePreview.Open(move, _performer, attackPoints, success, cancellation);
         }
         else if (keyboardInfo.WasKeyJustPressed(Keys.X))
         {
+            _showMoveOverlay();
             Close();
         }
     }

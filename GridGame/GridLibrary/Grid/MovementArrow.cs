@@ -6,11 +6,11 @@ using Microsoft.Xna.Framework;
 
 namespace GridLibrary.Grid;
 
-public class MovementArrow<T> where T : struct, Enum
+public class MovementArrow
 {
     public Point StartPosition { get; private set; } = Point.Zero;
     public List<Point> Path { get; private set; } = [];
-    private GridTileList<T> _gridTiles = new (0);
+    private GridTileList _gridTiles = new(0);
     private int _maxMovement = 0;
 
     public required TextureRegion HeadTexture { get; init; }
@@ -20,11 +20,11 @@ public class MovementArrow<T> where T : struct, Enum
 
     public bool IsVisible { get; private set; } = false;
 
-    public void Start(int maxMovement, Point start, GridTileList<T> gridTiles)
+    public void Start(int maxMovement, Point start, GridTileList gridTiles)
     {
         // If the cursor is currently in an unwalkable area, don't start the path.
-        GridTile<T> startTile = gridTiles[start];
-        if (!startTile.GetTileInfo().CanWalk)
+        GridTile startTile = gridTiles[start];
+        if (!startTile.TileInfo.CanWalk)
             return;
 
         StartPosition = start;
@@ -53,8 +53,8 @@ public class MovementArrow<T> where T : struct, Enum
         if (StartPosition == end)
             Path = [StartPosition];
 
-        GridTile<T> endTile = _gridTiles[end];
-        if (!endTile.GetTileInfo().CanWalk)
+        GridTile endTile = _gridTiles[end];
+        if (!endTile.TileInfo.CanWalk)
             return;
         
         // skip updating if we're past max range
@@ -65,6 +65,6 @@ public class MovementArrow<T> where T : struct, Enum
         if (Path.Last() == end)
             return;
 
-        Path = Dijkstra.FindShortestPath<T>(StartPosition, end, _maxMovement, walkableSpace) ?? Path;
+        Path = Dijkstra.FindShortestPath(StartPosition, end, _maxMovement, walkableSpace) ?? Path;
     }
 }

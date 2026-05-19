@@ -1,11 +1,14 @@
-using System;
 using GridLibrary.Graphics;
 using Microsoft.Xna.Framework;
 
 namespace GridLibrary.Grid;
 
-public abstract class GridTile<T>(Point position, TextureRegion texture, T tileType) :
-    BaseGridTile(position, texture) where T : Enum
+
+public class GridTile(Point position, TextureRegion texture, TileInfo tileInfo)
 {
-    public T TileType { get; } = tileType;
+    public Point Position = position;
+    public TextureRegion Texture { get; protected set; } = texture;
+    public TileInfo TileInfo { get; } = tileInfo;
+    
+    public virtual void Update(GameTime gameTime) { }
 }

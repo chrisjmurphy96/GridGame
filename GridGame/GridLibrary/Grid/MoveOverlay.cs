@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace GridLibrary.Grid;
 
@@ -11,7 +10,7 @@ namespace GridLibrary.Grid;
 /// Gets positions for "blue" grid of walkable tiles.
 /// Gets positions for "red" tiles indicating attack range.
 /// </summary>
-public class MoveOverlay<T> where T : struct, Enum
+public class MoveOverlay
 {
     public required TextureRegion MovementTexture { get; init; }
     public required TextureRegion AttackTexture { get; init; }
@@ -19,11 +18,11 @@ public class MoveOverlay<T> where T : struct, Enum
     public HashSet<Point> AttackPoints { get; set; } = [];
     public bool IsVisible { get; private set; } = false;
     
-    public void Show(int maxMovement, int attackRange, Point start, GridTileList<T> gridTiles, Dictionary<Point, IEntity> entities)
+    public void Show(int maxMovement, int attackRange, Point start, GridTileList gridTiles, Dictionary<Point, IEntity> entities)
     {
         // If the cursor is currently in an unwalkable area, don't start the path.
-        GridTile<T> startTile = gridTiles[start];
-        if (!startTile.GetTileInfo().CanWalk)
+        GridTile startTile = gridTiles[start];
+        if (!startTile.TileInfo.CanWalk)
             return;
 
         IsVisible = true;

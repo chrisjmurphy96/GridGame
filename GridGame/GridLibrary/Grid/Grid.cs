@@ -20,17 +20,17 @@ namespace GridLibrary.Grid;
 /// doesn't really make sense. The only real benefit I'd get
 /// is some code boiler plate reduction and proper IsFocused logic.
 /// </summary>
-public class Grid<tileType> where tileType : struct, Enum
+public class Grid
 {
-    public GridTileList<tileType> Tiles { get; }
+    public GridTileList Tiles { get; }
     public LdtkLevel Map { get; }
     public Texture2D MapAtlas { get; }
     public TextureRegion GridOverlay { get; }
     public int Scalar { get; }
     public int TileSize { get; set; }
     public Cursor Cursor { get; }
-    public MovementArrow<tileType> MovementArrow { get; }
-    public MoveOverlay<tileType> MoveOverlay { get; }
+    public MovementArrow MovementArrow { get; }
+    public MoveOverlay MoveOverlay { get; }
     public TextureRegion EnemyMoveOverlayTexture { get; }
     public ContextMenu ContextMenu { get; }
     public Dictionary<Point, IEntity> Entities { get; }
@@ -43,13 +43,11 @@ public class Grid<tileType> where tileType : struct, Enum
     private Point _cursorPosition = Point.Zero;
     private (Point position, IEntity entity) _activeEntity;
     private bool ChoosingWhereToMove => MoveOverlay.IsVisible;
-    private readonly Func<Point, TextureRegion, tileType, GridTile<tileType>> _gridTileFactory;
-    private readonly Func<Point, Animation, tileType, AnimatedGridTile<tileType>> _animatedGridTileFactory;
     private readonly static TimeSpan MOVE_DELAY = TimeSpan.FromMilliseconds(100);
-    public List<MoveOverlay<tileType>> EnemyMoveOverlays { get; } = [];
+    public List<MoveOverlay> EnemyMoveOverlays { get; } = [];
     public HashSet<Point> EnemyAttackPoints { get; } = [];
 
-    public GridTile<tileType> ActiveTile => Tiles[_cursorPosition];
+    public GridTile ActiveTile => Tiles[_cursorPosition];
     
     public Grid(
         LdtkProjectFile projectFile,
@@ -58,14 +56,13 @@ public class Grid<tileType> where tileType : struct, Enum
         TextureRegion gridOverlayTexture,
         int scalar,
         Cursor cursor,
-        MovementArrow<tileType> movementArrow,
-        MoveOverlay<tileType> moveOverlay,
+        MovementArrow movementArrow,
+        MoveOverlay moveOverlay,
         TextureRegion enemyMoveOverlayTexture,
         ContextMenu contextMenu,
         Dictionary<Point, IEntity> entities,
-        UIRoot uiRoot,
-        Func<Point, TextureRegion, tileType, GridTile<tileType>> gridTileFactory,
-        Func<Point, Animation, tileType, AnimatedGridTile<tileType>> animatedGridTileFactory)
+        Dictionary<string, TileInfo> enumNameToTileInfo,
+        UIRoot uiRoot)
     {
         Map = projectFile.GetLevelByName(levelName);
         MapAtlas = mapAtlas;
@@ -78,18 +75,23 @@ public class Grid<tileType> where tileType : struct, Enum
         ContextMenu = contextMenu;
         Entities = entities;
         _uiRoot = uiRoot;
-        _gridTileFactory = gridTileFactory;
-        _animatedGridTileFactory = animatedGridTileFactory;
         LdtkLayerInstance layerInstance = Map.GetTileLayer();
         int tilesetUid = layerInstance.TilesetDefUid ?? throw new ArgumentException($"No {layerInstance.TilesetDefUid} found");
         LdtkTileset tileset = projectFile.Defs.Tilesets.Single(tileset => tileset.Uid == tilesetUid);
         TileSize = tileset.TileGridSize;
         
-        List<(tileType tileType, int[] tileIds)> enumTags = [];
+        Dictionary<int, TileInfo> tileIdToTileInfo = [];
         foreach (LdtkEnumTag enumTag in tileset.EnumTags)
         {
-            tileType enumValue = Enum.Parse<tileType>(enumTag.EnumValueId);
-            enumTags.Add((enumValue, enumTag.TileIds));
+            // Explicit enums should have tags. Let it throw if there isn't, means I messed up.
+            TileInfo tileInfo = enumNameToTileInfo[enumTag.EnumValueId];
+            foreach(int tileId in enumTag.TileIds)
+            {
+                // Explicitly call add so we throw on collisions.
+                // LDTK seems to support multiple enums on a tile, but I'm
+                // not sure I want to.
+                tileIdToTileInfo.Add(tileId, tileInfo);
+            }
         }
 
         Dictionary<int, FrameData> tileIdToFrameData = [];
@@ -100,40 +102,39 @@ public class Grid<tileType> where tileType : struct, Enum
         }
 
         LdtkGridTile[] ldtkGridTiles = layerInstance.GridTiles;
-        Tiles = new GridTileList<tileType>(Columns);
+        Tiles = new GridTileList(Columns);
         foreach(LdtkGridTile ldtkGridTile in ldtkGridTiles)
         {
             if (tileIdToFrameData.TryGetValue(ldtkGridTile.TileId, out FrameData frameData))
             {
-                Tiles.Add(CreateAnimatedGridTile(ldtkGridTile, mapAtlas, layerInstance, enumTags, frameData));
+                Tiles.Add(CreateAnimatedGridTile(ldtkGridTile, mapAtlas, layerInstance, tileIdToTileInfo, frameData));
             }
             else
             {
-                Tiles.Add(CreateGridTile(ldtkGridTile, mapAtlas, layerInstance, enumTags));
+                Tiles.Add(CreateGridTile(ldtkGridTile, mapAtlas, layerInstance, tileIdToTileInfo));
             }
         }
     }
 
-    private AnimatedGridTile<tileType> CreateAnimatedGridTile(
+    private AnimatedGridTile CreateAnimatedGridTile(
         LdtkGridTile ldtkGridTile,
         Texture2D mapAtlas,
         LdtkLayerInstance ldtkLayerInstance,
-        List<(tileType tileType, int[] tileIds)> enumTags,
+        Dictionary<int, TileInfo> tileIdToTileInfo,
         FrameData frameData)
     {
-        tileType tileType = enumTags.Single(e => e.tileIds.Contains(ldtkGridTile.TileId)).tileType;
         int gridSize = ldtkLayerInstance.GridSize;
         Animation animation = Animation.FromFrameData(mapAtlas, frameData, gridSize, gridSize);
-        return _animatedGridTileFactory(ldtkGridTile.Position, animation, tileType);
+        TileInfo tileInfo = tileIdToTileInfo.GetValueOrDefault(ldtkGridTile.TileId) ?? new();
+        return new AnimatedGridTile(ldtkGridTile.Position, animation, tileInfo);
     }
 
-    private GridTile<tileType> CreateGridTile(
+    private GridTile CreateGridTile(
         LdtkGridTile ldtkGridTile,
         Texture2D mapAtlas,
         LdtkLayerInstance ldtkLayerInstance,
-        List<(tileType tileType, int[] tileIds)> enumTags)
+        Dictionary<int, TileInfo> tileIdToTileInfo)
     {
-        tileType tileType = enumTags.Single(e => e.tileIds.Contains(ldtkGridTile.TileId)).tileType;
         TextureRegion texture = new()
         {
             Texture = mapAtlas,
@@ -145,13 +146,14 @@ public class Grid<tileType> where tileType : struct, Enum
                 Height = ldtkLayerInstance.GridSize
             }
         };
-        return _gridTileFactory(ldtkGridTile.Position, texture, tileType);
+        TileInfo tileInfo = tileIdToTileInfo.GetValueOrDefault(ldtkGridTile.TileId) ?? new();
+        return new GridTile(ldtkGridTile.Position, texture, tileInfo);
     }
 
     public void Update(GameTime gameTime, KeyboardInfo keyboardInfo, Camera camera)
     {
         Cursor.Update(gameTime);
-        foreach (GridTile<tileType> gridTile in Tiles)
+        foreach (GridTile gridTile in Tiles)
             gridTile.Update(gameTime);
         UpdateEnemyOverlay();
 
@@ -228,8 +230,8 @@ public class Grid<tileType> where tileType : struct, Enum
                 continue;
 
             // TODO: Could add clicking a singular enemy entity shows just their range.
-            HashSet<Point> walkable = Dijkstra.GetWalkable<tileType>(entityPosition, entity.MovementRange, Tiles, Entities, forEnemy: true);
-            HashSet<Point> attackable = Dijkstra.GetAttackable<tileType>(entity.DefaultAttack.Range, walkable, Tiles);
+            HashSet<Point> walkable = Dijkstra.GetWalkable(entityPosition, entity.MovementRange, Tiles, Entities, forEnemy: true);
+            HashSet<Point> attackable = Dijkstra.GetAttackable(entity.DefaultAttack.Range, walkable, Tiles);
             EnemyAttackPoints.UnionWith(walkable);
             EnemyAttackPoints.UnionWith(attackable);
         }
@@ -296,24 +298,29 @@ public class Grid<tileType> where tileType : struct, Enum
         if (ContextMenu.IsVisible)
             return;
 
-        Entities.TryGetValue(_cursorPosition, out IEntity? entity);
         if (ChoosingWhereToMove)
         {
             if (!MoveOverlay.MovementPoints.Contains(_cursorPosition))
                 return;
             if (!ContextMenu.IsVisible)
             {
+                IEntity activeEntity = _activeEntity.entity;
+                int activeEntityMovementRange = activeEntity.MovementRange;
+                int activeEntityAttackRange = activeEntity.DefaultAttack.Range;
                 ContextMenu.Open(
                     _activeEntity.entity,
                     _cursorPosition,
                     gameTime,
                     HandleMoveSelection,
-                    Tiles);
+                    Tiles,
+                    () => MoveOverlay.Show(activeEntityMovementRange, activeEntityAttackRange, _activeEntity.position, Tiles, Entities),
+                    () => MoveOverlay.Hide());
                 UIRoot.Focus(ContextMenu);
             }
             return;
         }
 
+        Entities.TryGetValue(_cursorPosition, out IEntity? entity);
         if (entity is null ||
             !entity.IsPlayerControllable)
         {

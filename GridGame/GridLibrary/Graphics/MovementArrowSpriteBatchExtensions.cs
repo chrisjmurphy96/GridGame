@@ -24,7 +24,7 @@ public static class MovementArrowSpriteBatchExtensions
         public static float DownLeftOrRightUp = Single.DegreesToRadians(180);
     }
 
-    public static void Draw<T>(this SpriteBatch spriteBatch, MovementArrow<T> movementArrow, int scalar, int tileSize) where T : struct, Enum
+    public static void Draw(this SpriteBatch spriteBatch, MovementArrow movementArrow, int scalar, int tileSize)
     {
         // Since we have to center the origin for nice rotation, we need an offset
         // to re-center the sprite on the grid.
