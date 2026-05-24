@@ -1,74 +1,203 @@
-using System;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using GridLibrary.Entities;
-using GridLibrary.Graphics;
+using GridLibrary.Grid;
 using GridLibrary.Input;
+using GridLibrary.Routing;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GridLibrary.UI;
 
-public class MovePreview : UIElement
+public class MovePreview : UIElement, IRouteableElement
 {
     public required SpriteFont Font { get; init; }
+    public required AttackOverlay AttackOverlay { get; init; }
+    public required Cursor Cursor { get; init; }
 
     public IMove? Move { get; private set; }
     public IEntity? Performer { get; set; }
     public IEntity? Receiver { get; set; }
 
-    private HashSet<Point> _attackPoints = [];
-    private EventHandler? _confirm;
-    private EventHandler? _cancel;
-
-    public void Open(
-        IMove move,
-        IEntity performer,
-        HashSet<Point> attackPoints,
-        Action confirmationCallback,
-        Action cancellationCallback)
+    public void Initialize()
     {
-        SetIsVisible<MovePreview>(true);
-        UIRoot.Focus(this);
-        Move = move;
-        Performer = performer;
-        _attackPoints = attackPoints;
-        _confirm += (_, _) => confirmationCallback();
-        _cancel += (_, _) => cancellationCallback();
+        Point cursorPosition = GridState.Instance.CursorPosition;
+        GridTileList gridTiles = GridState.Instance.Tiles;
+        IEntity activeEntity = GridState.Instance.ActiveEntity?.entity ?? throw new ArgumentException($"No {nameof(activeEntity)}");
+        Performer = activeEntity;
+        Move = activeEntity.SelectedMove;
+        int range = activeEntity.SelectedMove.Range;
+        AttackOverlay.Show(range, cursorPosition, gridTiles);
+        Dictionary<Point, IEntity> entities = GridState.Instance.Entities;
+        bool foundEnemy = false;
+        foreach (Point attackPoint in AttackOverlay.AttackPoints)
+        {
+            if (entities.TryGetValue(attackPoint, out IEntity? entity) &&
+                entity is not null &&
+                !entity.IsFriendly)
+            {
+                GridState.Instance.CursorPosition = attackPoint;
+                foundEnemy = true;
+                Cursor.SetPosition(attackPoint);
+                // TODO: The cursor probably needs to be the source of truth for this.
+                // It's getting ridiculous managing this separately.
+                GridState.Instance.CursorPosition = attackPoint;
+                break;
+            }
+        }
+        if (!foundEnemy && AttackOverlay.AttackPoints.Count > 0)
+        {
+            Point attackPoint = AttackOverlay.AttackPoints.First();
+            Cursor.SetPosition(attackPoint);
+            // TODO: The cursor probably needs to be the source of truth for this.
+            // It's getting ridiculous managing this separately.
+            GridState.Instance.CursorPosition = attackPoint;
+        }
     }
 
-    public void Close()
-    {
-        SetIsVisible<MovePreview>(false);
-        Move = null;
-        Performer = null;
-        Receiver = null;
-        _attackPoints.Clear();
-        _confirm = null;
-        _cancel = null;
-    }
-
-    public override void HandleInput(KeyboardInfo keyboardInfo)
+    /// <summary>
+    /// TODO: In Echoes, you actually can't select a square to attack unless it contains an enemy.
+    /// That's probably a simple check to add.
+    /// </summary>
+    public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
     {
         if (!IsVisible)
             return;
 
-        if (keyboardInfo.WasKeyJustPressed(Keys.Z))
+        Point cursorPosition = GridState.Instance.CursorPosition;
+        if (keyboardInfo.WasKeyJustPressed(Keys.Up))
         {
-            if (_attackPoints.Count is 0)
+            Point up = cursorPosition.Up();
+            bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(up)?.IsFriendly) ?? false;
+            if (AttackOverlay.AttackPoints.Contains(up) && enemyPresent)
             {
-                _confirm?.Invoke(this, EventArgs.Empty);
-                Close();
+                Cursor.SetPosition(up);
+                GridState.Instance.CursorPosition = up;
             }
-            // TODO: need to switch to yet ANOTHER view where we let
-            // the player attempt to select a valid target.
-            // Maybe we can also deny the action if there are no targets in range.
+            else
+            {
+                Point? validCandidate = null;
+                foreach (Point attackPoint in AttackOverlay.AttackPoints)
+                {
+                    enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(attackPoint)?.IsFriendly) ?? false;
+                    if (attackPoint.IsAbove(cursorPosition) && enemyPresent)
+                    {
+                        if (validCandidate is null)
+                            validCandidate = attackPoint;
+                        else if (cursorPosition.DistanceTo(attackPoint) < cursorPosition.DistanceTo(validCandidate.Value))
+                            validCandidate = attackPoint;
+                    }
+                }
+                if (validCandidate is not null)
+                {
+                    Cursor.SetPosition(validCandidate.Value);
+                    GridState.Instance.CursorPosition = validCandidate.Value;
+                }
+            }
+        }
+        else if (keyboardInfo.WasKeyJustPressed(Keys.Down))
+        {
+            Point down = cursorPosition.Down();
+            bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(down)?.IsFriendly) ?? false;
+            if (AttackOverlay.AttackPoints.Contains(down) && enemyPresent)
+            {
+                Cursor.SetPosition(down);
+                GridState.Instance.CursorPosition = cursorPosition.Down();
+            }
+            else
+            {
+                Point? validCandidate = null;
+                foreach (Point attackPoint in AttackOverlay.AttackPoints)
+                {
+                    enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(attackPoint)?.IsFriendly) ?? false;
+                    if (attackPoint.IsBelow(cursorPosition) && enemyPresent)
+                    {
+                        if (validCandidate is null)
+                            validCandidate = attackPoint;
+                        else if (cursorPosition.DistanceTo(attackPoint) < cursorPosition.DistanceTo(validCandidate.Value))
+                            validCandidate = attackPoint;
+                    }
+                }
+                if (validCandidate is not null)
+                {
+                    Cursor.SetPosition(validCandidate.Value);
+                    GridState.Instance.CursorPosition = validCandidate.Value;
+                }
+            }
+        }
+        else if (keyboardInfo.WasKeyJustPressed(Keys.Right))
+        {
+            Point right = cursorPosition.Right();
+            bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(right)?.IsFriendly) ?? false;
+            if (AttackOverlay.AttackPoints.Contains(right) && enemyPresent)
+            {
+                Cursor.SetPosition(right);
+                GridState.Instance.CursorPosition = right;
+            }
+            else
+            {
+                Point? validCandidate = null;
+                foreach (Point attackPoint in AttackOverlay.AttackPoints)
+                {
+                    enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(attackPoint)?.IsFriendly) ?? false;
+                    if (attackPoint.IsRightOf(cursorPosition) && enemyPresent)
+                    {
+                        if (validCandidate is null)
+                            validCandidate = attackPoint;
+                        else if (cursorPosition.DistanceTo(attackPoint) < cursorPosition.DistanceTo(validCandidate.Value))
+                            validCandidate = attackPoint;
+                    }
+                }
+                if (validCandidate is not null)
+                {
+                    Cursor.SetPosition(validCandidate.Value);
+                    GridState.Instance.CursorPosition = validCandidate.Value;
+                }
+            }
+        }
+        else if (keyboardInfo.WasKeyJustPressed(Keys.Left))
+        {
+            Point left = cursorPosition.Left();
+            bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(left)?.IsFriendly) ?? false;
+            if (AttackOverlay.AttackPoints.Contains(left) && enemyPresent)
+            {
+                Cursor.SetPosition(left);
+                GridState.Instance.CursorPosition = left;
+            }
+            else
+            {
+                Point? validCandidate = null;
+                foreach (Point attackPoint in AttackOverlay.AttackPoints)
+                {
+                    enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(attackPoint)?.IsFriendly) ?? false;
+                    if (attackPoint.IsLeftOf(cursorPosition) && enemyPresent)
+                    {
+                        if (validCandidate is null)
+                            validCandidate = attackPoint;
+                        else if (cursorPosition.DistanceTo(attackPoint) < cursorPosition.DistanceTo(validCandidate.Value))
+                            validCandidate = attackPoint;
+                    }
+                }
+                if (validCandidate is not null)
+                {
+                    Cursor.SetPosition(validCandidate.Value);
+                    GridState.Instance.CursorPosition = validCandidate.Value;
+                }
+            }
+        }
+        else if (keyboardInfo.WasKeyJustPressed(Keys.Z))
+        {
+            if (AttackOverlay.AttackPoints.Count is 0)
+            {
+                Router.RouteTo(DefaultRoutes.Grid);
+            }
         }
         else if (keyboardInfo.WasKeyJustPressed(Keys.X))
         {
-            _cancel?.Invoke(this, EventArgs.Empty);
-            Close();
+            AttackOverlay.Hide();
+            Router.RouteTo(DefaultRoutes.ContextMenu);
         }
     }
 

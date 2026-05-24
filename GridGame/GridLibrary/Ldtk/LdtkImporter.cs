@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Xna.Framework.Content;
 
 namespace GridLibrary.Ldtk;

@@ -9,8 +9,10 @@ using GridLibrary.Graphics;
 using GridLibrary.Grid;
 using GridLibrary.Input;
 using GridLibrary.Ldtk;
+using GridLibrary.Routing;
 using GridLibrary.Scenes;
 using GridLibrary.UI;
+using GridLibrary.UI.ContextMenu;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -39,13 +41,12 @@ public class MenzobaraRiverScene(
     private readonly AssetManager _assetManager = assetManager;
     private readonly UIRoot _uiRoot = uiFactory;
     private readonly FrameCounter _frameCounter = new();
-    private Grid _grid;
+    private TileGrid _grid;
     private SpriteFont _font;
     private TileInfo _activeTileInfo;
 
     private static readonly TimeSpan MoveDelay = TimeSpan.FromMilliseconds(100);
     private bool _showGrid = false;
-    private UIElement _testUIElement;
 
     public override void Initialize()
     {
@@ -86,16 +87,31 @@ public class MenzobaraRiverScene(
         AnimatedSprite cursorSprite = new()
         {
             Animation = cursorAnimation,
-            Scale = Vector2.One * 4
+            Scale = Vector2.One * 4,
+            LayerDepth = LayerDepths.MovementArrow
         };
-        Cursor cursor = new ()
-        {
-            CursorSprite = cursorSprite
-        };
+        Cursor cursor = new (camera, cursorSprite);
         TextureRegion gridOverlayTexture = new()
         {
             Texture = atlas,
             SourceRectangle = new Rectangle(x: 0, y: 32, width: 16, height: 16)
+        };   
+
+        TextureRegion movementOverlayTexture = new()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(48, 48, 16, 16)
+        };
+        TextureRegion attackOverlayTexture = new ()
+        {
+            Texture = atlas,
+            SourceRectangle = new Rectangle(32, 48, 16, 16)
+        };
+
+        MoveOverlay moveOverlay = new ()
+        {
+            MovementTexture = movementOverlayTexture,
+            AttackTexture = attackOverlayTexture
         };
 
         TextureRegion arrowHead = new()
@@ -118,31 +134,17 @@ public class MenzobaraRiverScene(
             Texture = atlas,
             SourceRectangle = new Rectangle(x: 32, y: 16, width: 16, height: 16)
         };
-
-        MovementArrow movementArrow = new()
+        MovementArrow movementArrow = new(cursor, moveOverlay)
         {
             HeadTexture = arrowHead,
             StraightTexture = arrowBody,
             BendTexture = arrowBend,
             StartTexture = arrowStart
         };
-
-        TextureRegion movementOverlay = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(48, 48, 16, 16)
-        };
-        TextureRegion attackOverlay = new ()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(32, 48, 16, 16)
-        };
-
-        MoveOverlay moveOverlay = new ()
-        {
-            MovementTexture = movementOverlay,
-            AttackTexture = attackOverlay
-        };
+        UIRoot
+            .RootToCamera(movementArrow)
+            .SetLayerDepth(LayerDepths.MovementArrow)
+            .SetIsVisible(false);
 
         LdtkLayerInstance entityLayer = level.GetEntityLayer();
         TextureRegion goblinTexture = new()
@@ -161,6 +163,21 @@ public class MenzobaraRiverScene(
             { Fighter.LdtkIdentifier, fighterTexture }
         };
         Dictionary<Point, IEntity> entities = EntityFactory.CreateLayerEntities(entityLayer, identifierToTexture);
+        GridState.Instance.Entities = entities;
+
+        Sprite attackOverlaySprite = new ()
+        {
+            TextureRegion = attackOverlayTexture,
+            Scale = Vector2.One * 4,
+            LayerDepth = LayerDepths.MoveOverlay
+        };
+        AttackOverlay attackOverlay = new()
+        {
+            AttackOverlaySprite = attackOverlaySprite
+        };
+        UIRoot
+            .RootToCamera(attackOverlay)
+            .SetIsVisible(false);
 
         TextureRegion menuTexture = new()
         {
@@ -177,16 +194,18 @@ public class MenzobaraRiverScene(
 
         MovePreview movePreview = new()
         {
-            Font = _font
+            Font = _font,
+            AttackOverlay = attackOverlay,
+            Cursor = cursor
         };
-        _uiRoot
-            .AddToRoot<MovePreview>(movePreview)
-            .SetTexture<MovePreview>(movePreviewTexture)
-            .SetWidth<MovePreview>(movePreviewTexture.Width * menuScalar, UIUnit.Pixels)
-            .SetHeight<MovePreview>(movePreviewTexture.Height * menuScalar, UIUnit.Pixels)
-            .PadHorizontal<MovePreview>(4, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
-            .PadVertical<MovePreview>(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
-            .SetIsVisible<MovePreview>(false);
+        UIRoot
+            .RootToScreen(movePreview)
+            .SetTexture(movePreviewTexture)
+            .SetWidth(movePreviewTexture.Width * menuScalar, UIUnit.Pixels)
+            .SetHeight(movePreviewTexture.Height * menuScalar, UIUnit.Pixels)
+            .PadHorizontal(4, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
+            .PadVertical(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
+            .SetIsVisible(false);
         
         TextureRegion focusTexture = new()
         {
@@ -197,17 +216,18 @@ public class MenzobaraRiverScene(
         {
             FocusTexture = focusTexture,
             KeyboardInfo = _keyboardInfo,
-            MovePreview = movePreview,
             Font = _font,
+            Cursor = cursor
         };
-        _uiRoot
-            .AddToRoot<ContextMenu>(contextMenu)
-            .SetTexture<ContextMenu>(menuTexture)
-            .SetWidth<UIElement>(menuScalar * menuTexture.Width, UIUnit.Pixels)
-            .SetHeight<UIElement>(menuScalar * menuTexture.Height, UIUnit.Pixels)
-            .PadHorizontal<ContextMenu>(4, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
-            .PadVertical<ContextMenu>(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
-            .SetIsVisible<ContextMenu>(false);
+        UIRoot
+            .RootToScreen(contextMenu)
+            .SetLayerDepth(LayerDepths.StaticUI)
+            .SetTexture(menuTexture)
+            .SetWidth(menuScalar * menuTexture.Width, UIUnit.Pixels)
+            .SetHeight(menuScalar * menuTexture.Height, UIUnit.Pixels)
+            .PadHorizontal(4, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
+            .PadVertical(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
+            .SetIsVisible(false);
 
         TextureRegion enemyMoveOverlayTexture = new ()
         {
@@ -223,20 +243,19 @@ public class MenzobaraRiverScene(
             { "Grass", TileInfo.Default }
         };
 
-        _grid = new Grid(
-            ldtkProjectFile,
-            levelName,
-            atlas,
+        GridTileList tiles = GridTileList.FromLevel(ldtkProjectFile, levelName, atlas, enumNameToTileInfo);
+        GridState.Instance.Tiles = tiles;
+        _grid = new TileGrid(
             gridOverlayTexture,
             scalar: 4,
             cursor,
             movementArrow,
             moveOverlay,
             enemyMoveOverlayTexture,
-            contextMenu,
-            entities,
-            enumNameToTileInfo,
-            _uiRoot);
+            _font);
+        // don't attach Grid to the root, we want to control how it's drawn
+        UIRoot.Focus(_grid);
+        Router.AddDefaultRoutes(_grid, movementArrow, contextMenu, movePreview);
         
         _camera.CameraBounds = new()
         {
@@ -262,7 +281,7 @@ public class MenzobaraRiverScene(
         if (_keyboardInfo.WasKeyJustPressed(Keys.H))
             _sceneManager.ChangeScene<OtherScene>();
         
-        _activeTileInfo = _grid.ActiveTile.TileInfo;
+        _activeTileInfo = GridState.Instance.ActiveTile?.TileInfo ?? new();
         
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
@@ -276,23 +295,25 @@ public class MenzobaraRiverScene(
         {
             ToggleGrid();
         }
-        _grid.Update(gameTime, _keyboardInfo, _camera);
+        _grid.Update(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
     {
         _graphicsDevice.Clear(Color.MonoGameOrange);
 
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: _camera.GetViewMatrix());
-        _spriteBatch.Draw(_grid, _showGrid);
+        _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: _camera.GetViewMatrix(), sortMode: SpriteSortMode.BackToFront);
+        _grid.Draw(_spriteBatch, _camera.CameraBounds);
+        _uiRoot.DrawCameraElements();
         _spriteBatch.End();
 
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        _spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.BackToFront);
         _spriteBatch.DrawString(_font, _activeTileInfo.ToString(_grid.Cursor.Position), Vector2.Zero, Color.White);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _frameCounter.Update(deltaTime);
         string fps = string.Format("FPS: {0}", (int)_frameCounter.AverageFramesPerSecond);
         _spriteBatch.DrawString(_font, fps, new Vector2(x: 500, y: 0), Color.White);
+        _uiRoot.DrawScreenElements();
         _spriteBatch.End();
     }
 

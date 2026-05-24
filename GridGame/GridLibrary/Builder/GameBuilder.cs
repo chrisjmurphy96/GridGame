@@ -7,7 +7,7 @@ namespace GridLibrary.Builder;
 
 public class GameBuilder<T> where T : Core, new()
 {
-    public ServiceCollection Services => _game.ServiceCollection; //= [];
+    public ServiceCollection Services => _game.ServiceCollection;
     private readonly T _game;
 
     public GameBuilder()
@@ -22,7 +22,7 @@ public class GameBuilder<T> where T : Core, new()
     public void SetScreen(string title, int width, int height, bool fullScreen)
     {
         _game.SetScreen(title, width, height, fullScreen);
-    } 
+    }
 
     /// <summary>
     /// Takes a <see cref="Scene" /> as a type argument. This will be the initial scene of the game.

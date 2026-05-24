@@ -9,54 +9,17 @@ namespace Microsoft.Xna.Framework.Graphics;
 
 public static class SpriteBatchExtensions
 {
-    public static void Draw(this SpriteBatch spriteBatch, Grid grid, bool drawGridOverlay = false)
-    {
-        Vector2 scale = Vector2.One * grid.Scalar;
-        foreach(GridTile gridTile in grid.Tiles)
-        {
-            Vector2 position = gridTile.Position.ToVector2() * grid.Scalar;
-            spriteBatch.Draw(
-                texture: grid.MapAtlas,
-                position,
-                gridTile.Texture.SourceRectangle,
-                Color.White,
-                rotation: 0,
-                origin: Vector2.Zero,
-                scale: scale,
-                SpriteEffects.None,
-                layerDepth: 1.0f);
-
-            if (drawGridOverlay)
-            {
-                spriteBatch.Draw(
-                    textureRegion: grid.GridOverlay,
-                    position,
-                    Color.White * 0.25f,
-                    rotation: 0,
-                    origin: Vector2.Zero,
-                    scale: scale,
-                    SpriteEffects.None,
-                    layerDepth: 1.0f);
-            }
-        }
-        spriteBatch.Draw(grid.MoveOverlay, grid.Scalar, grid.TileSize);
-        spriteBatch.Draw(grid.MovementArrow, grid.Scalar, grid.TileSize);
-        spriteBatch.DrawEnemyAttackPoints(grid.EnemyAttackPoints, grid.EnemyMoveOverlayTexture, grid.Scalar, grid.TileSize);
-        spriteBatch.Draw(grid.Entities, grid.Scalar, grid.TileSize, grid.ContextMenu.Font);
-        spriteBatch.Draw(grid.Cursor);
-    }
-
     public static void Draw(
         this SpriteBatch spriteBatch,
         Dictionary<Point, IEntity> entities,
         int scalar,
-        int tileSize,
         SpriteFont? debugFont = null)
     {
         Vector2 scale = Vector2.One * scalar;
         foreach((Point position, IEntity entity) in entities)
         {
-            Vector2 positionVector = position.ToVector2() * scalar * tileSize;
+            int spriteSize = entity.Texture.Width;
+            Vector2 positionVector = position.ToVector2() * scalar * spriteSize;
             spriteBatch.Draw(
                 textureRegion: entity.Texture,
                 positionVector,
@@ -65,7 +28,7 @@ public static class SpriteBatchExtensions
                 origin: Vector2.Zero,
                 scale: scale,
                 SpriteEffects.None,
-                layerDepth: 1.0f);
+                layerDepth: LayerDepths.Entities);
             
             if (debugFont is not null)
             {
@@ -79,16 +42,16 @@ public static class SpriteBatchExtensions
         this SpriteBatch spriteBatch,
         HashSet<Point> enemyAttackPoints,
         TextureRegion movementTexture,
-        int scalar,
-        int tileSize)
+        int scalar)
     {
         if (enemyAttackPoints.Count is 0)
             return;
 
         Vector2 scale = Vector2.One * scalar;
+        int spriteSize = movementTexture.Width;
         foreach (Point point in enemyAttackPoints)
         {
-            Vector2 position = point.ToVector2() * scalar * tileSize;
+            Vector2 position = point.ToVector2() * scalar * spriteSize;
             spriteBatch.Draw(
                     textureRegion: movementTexture,
                     position,
@@ -97,19 +60,22 @@ public static class SpriteBatchExtensions
                     origin: Vector2.Zero,
                     scale: scale,
                     SpriteEffects.None,
-                    layerDepth: 1.0f);
+                    layerDepth: LayerDepths.MoveOverlay);
         }
     }
 
-    public static void Draw(this SpriteBatch spriteBatch, MoveOverlay moveOverlay, int scalar, int tileSize)
+    public static void Draw(this SpriteBatch spriteBatch, MoveOverlay moveOverlay, int scalar)
     {
         if (!moveOverlay.IsVisible)
             return;
 
         Vector2 scale = Vector2.One * scalar;
+        // These are square tiles, Width can be used as our size. This only works so long as
+        // the move overlay texture is the same size as the grid tiles
+        int spriteSize = moveOverlay.MovementTexture.Width;
         foreach(Point point in moveOverlay.MovementPoints)
         {
-            Vector2 position = point.ToVector2() * scalar * tileSize;
+            Vector2 position = point.ToVector2() * scalar * spriteSize;
             spriteBatch.Draw(
                     textureRegion: moveOverlay.MovementTexture,
                     position,
@@ -118,12 +84,12 @@ public static class SpriteBatchExtensions
                     origin: Vector2.Zero,
                     scale: scale,
                     SpriteEffects.None,
-                    layerDepth: 1.0f);
+                    layerDepth: LayerDepths.MoveOverlay);
         }
 
         foreach(Point point in moveOverlay.AttackPoints)
         {
-            Vector2 position = point.ToVector2() * scalar * tileSize;
+            Vector2 position = point.ToVector2() * scalar * spriteSize;
             spriteBatch.Draw(
                     textureRegion: moveOverlay.AttackTexture,
                     position,
@@ -132,7 +98,7 @@ public static class SpriteBatchExtensions
                     origin: Vector2.Zero,
                     scale: scale,
                     SpriteEffects.None,
-                    layerDepth: 1.0f);
+                    layerDepth: LayerDepths.MoveOverlay);
         }
     }
 
@@ -158,6 +124,25 @@ public static class SpriteBatchExtensions
             animatedSprite.Scale, 
             animatedSprite.Effects,
             animatedSprite.LayerDepth);
+    }
+
+    /// <summary>
+    /// Submit a <see cref="Sprite"> for drawing in the current batch.
+    /// </summary>
+    /// <param name="spriteBatch">The SpriteBatch instance used for batching draw calls.</param>
+    /// <param name="sprite"></param>
+    /// <param name="position">The xy-coordinate location to draw this texture region on the screen.</param>
+    public static void Draw(this SpriteBatch spriteBatch, Sprite sprite, Vector2 position, float opaqueness = 1)
+    {
+        spriteBatch.Draw(
+            sprite.TextureRegion,
+            position,
+            sprite.Color * opaqueness,
+            sprite.Rotation,
+            sprite.Origin, 
+            sprite.Scale, 
+            sprite.Effects,
+            sprite.LayerDepth);
     }
 
     /// <summary>

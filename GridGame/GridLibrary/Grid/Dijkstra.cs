@@ -161,6 +161,9 @@ public static class Dijkstra
 
     public static HashSet<Point> GetAttackable(int attackRange, HashSet<Point> walkablePoints, GridTileList gridTiles)
     {
+        if (attackRange is 0)
+            return [];
+
         HashSet<Point> attackPoints = [];
         foreach(Point point in walkablePoints)
         {

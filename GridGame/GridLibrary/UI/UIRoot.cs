@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using GridLibrary.Graphics;
 using GridLibrary.Input;
@@ -21,8 +22,9 @@ public class UIRoot
     private Viewport _viewport;
     private readonly SpriteBatch _spriteBatch;
     private readonly KeyboardInfo _keyboardInfo;
-    private readonly UIElement _root = new();
-    private static UIElement? _focusedElement = null;
+    private static readonly UIElement _cameraRoot = new();
+    private static readonly UIElement _screenRoot = new();
+    private static IUIElement? _focusedElement = null;
     /// <summary>
     /// Bit of a janky workaround, but this is to prevent
     /// HandleInput methods from immediately processing
@@ -38,9 +40,9 @@ public class UIRoot
         _graphicsDevice = graphicsDevice;
         Viewport viewport = graphicsDevice.Viewport;
         _viewport = viewport;
-        _root
-            .SetWidth<UIElement>(viewport.Width, UIUnit.Pixels)
-            .SetHeight<UIElement>(viewport.Height, UIUnit.Pixels);
+        _cameraRoot
+            .SetWidth(viewport.Width, UIUnit.Pixels)
+            .SetHeight(viewport.Height, UIUnit.Pixels);
         _spriteBatch = spriteBatch;
         _keyboardInfo = keyboardInfo;
     }
@@ -58,65 +60,54 @@ public class UIRoot
         if (_viewport.Bounds != viewport.Bounds)
         {
             _viewport = viewport;
-            _root
-                .SetWidth<UIElement>(viewport.Width, UIUnit.Pixels)
-                .SetHeight<UIElement>(viewport.Height, UIUnit.Pixels);
+            _cameraRoot
+                .SetWidth(viewport.Width, UIUnit.Pixels)
+                .SetHeight(viewport.Height, UIUnit.Pixels);
         }
         if (_justSwitchedFocus)
         {
             _justSwitchedFocus = false;
         }
         else
-            _focusedElement?.HandleInput(_keyboardInfo);
-
-        // foreach (UIElement child in _root.Children)
-        //     child.Update(gameTime);
+            _focusedElement?.HandleInput(gameTime, _keyboardInfo);
     }
 
-    /// <summary>
-    /// By default width and height will be set the TextureRegion's width and height.
-    /// </summary>
-    public UIElement Create<T>(TextureRegion textureRegion) where T : UIElement, new()
+
+    public static IUIElement RootToCamera(IUIElement element)
     {
-        T element = new T()
-            .SetTexture<T>(textureRegion)
-            .SetParent<T>(_root);
+        element.SetParent(_cameraRoot);
         return element;
     }
 
-    public T AddToRoot<T>(T element) where T : UIElement
+    public static IUIElement RootToScreen(IUIElement element)
     {
-        element.SetParent<T>(_root);
+        element.SetParent(_screenRoot);
         return element;
     }
 
-    public static void Focus(UIElement element)
+    public static void Focus(IUIElement element)
     {
-        if (_focusedElement is not null)
-            _focusedElement.IsFocused = false;
-
-        element.IsFocused = true;
         _focusedElement = element;
         _justSwitchedFocus = true;
     }
 
-    public static void Unfocus()
-    {
-        if (_focusedElement is not null)
-            _focusedElement.IsFocused = false;
-        _focusedElement = null;
-    }
+    public static IUIElement? GetFocusedElement() => _focusedElement;
 
-    public void Draw()
+    public void DrawCameraElements()
     {
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-
-        foreach(UIElement child in _root.Children)
+        foreach(IUIElement child in _cameraRoot.Children)
         {
             if (child.IsVisible)
                 child.Draw(_spriteBatch, _viewport.Bounds);
         }
+    }
 
-        _spriteBatch.End();
+    public void DrawScreenElements()
+    {
+        foreach(IUIElement child in _screenRoot.Children)
+        {
+            if (child.IsVisible)
+                child.Draw(_spriteBatch, _viewport.Bounds);
+        }
     }
 }

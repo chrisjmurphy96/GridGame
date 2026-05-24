@@ -9,58 +9,86 @@ public class Cursor
     // Does the camera make sense as source of truth? Or separate completely?
     public int Step { get; set; } = 64;
 
-    public Vector2 Position = Vector2.Zero;
-    public required AnimatedSprite CursorSprite { get; set; }
+    public Vector2 Position => _position;
+    private Vector2 _position = Vector2.Zero;
+    private readonly Camera _camera;
+
+    public AnimatedSprite CursorSprite { get; }
+
+    public Cursor(Camera camera, AnimatedSprite cursorSprite)
+    {
+        _camera = camera;
+        CursorSprite = cursorSprite;
+    }
 
     public void Update(GameTime gameTime) => CursorSprite.Update(gameTime);
 
-    public void Move(Vector2 movement, Camera camera)
+    /// <summary>
+    /// This goes off of a grid coordinate instead of a raw
+    /// position vector, so scaling should not be applied to the
+    /// point. This function will handle that.
+    /// </summary>
+    public void SetPosition(Point point)
     {
-        Move(movement, Step, camera);
+        _position = point.ToVector2() * Step;
+        FixCamera();
     }
 
-    public void Move(Vector2 movement, int step, Camera camera)
+    public void Move(Vector2 movement)
     {
-        Position += movement * step;
-        FixPosition(camera);
-        FixCamera(camera);
+        Move(movement, Step);
     }
 
-    public void MoveUp(Camera camera) => Move(-Vector2.UnitY, camera);
-    public void MoveDown(Camera camera) => Move(Vector2.UnitY, camera);
-    public void MoveLeft(Camera camera) => Move(-Vector2.UnitX, camera);
-    public void MoveRight(Camera camera) => Move(Vector2.UnitX, camera);
-
-    private void FixPosition(Camera camera)
+    public void Move(Vector2 movement, int step)
     {
-        Rectangle cameraBounds = camera.CameraBounds;
+        _position += movement * step;
+        FixPosition();
+        FixCamera();
+    }
+
+    public void MoveUp() => Move(-Vector2.UnitY);
+    public void MoveDown() => Move(Vector2.UnitY);
+    public void MoveLeft() => Move(-Vector2.UnitX);
+    public void MoveRight() => Move(Vector2.UnitX);
+
+    private void FixPosition()
+    {
+        Rectangle cameraBounds = _camera.CameraBounds;
         Rectangle cursorBounds = GetBounds();
         if (cursorBounds.Top < cameraBounds.Top)
-            Position.Y = 0;
+            _position.Y = 0;
         if (cursorBounds.Bottom > cameraBounds.Bottom)
-            Position.Y = cameraBounds.Bottom - cursorBounds.Height;
+            _position.Y = cameraBounds.Bottom - cursorBounds.Height;
         if (cursorBounds.Left < cameraBounds.Left)
-            Position.X = 0;
+            _position.X = 0;
         if (cursorBounds.Right > cameraBounds.Right)
-            Position.X = cameraBounds.Right - cursorBounds.Width;
+            _position.X = cameraBounds.Right - cursorBounds.Width;
     }
 
-    private void FixCamera(Camera camera)
+    private void FixCamera()
     {
-        Rectangle viewBounds = camera.CurrentViewBounds();
         Rectangle cursorBounds = GetBounds();
-        if (cursorBounds.Top < viewBounds.Top)
-            camera.MoveUp();
-        if (cursorBounds.Bottom > viewBounds.Bottom)
-            camera.MoveDown();
-        if (cursorBounds.Left < viewBounds.Left)
-            camera.MoveLeft();
-        if (cursorBounds.Right > viewBounds.Right)
-            camera.MoveRight();
+        // Maybe a lazy solution, but this should be so fast no one will notice
+        bool cursorInView = false;
+        while (!cursorInView)
+        {
+            Rectangle viewBounds = _camera.CurrentViewBounds();
+            if (cursorBounds.Top < viewBounds.Top)
+                _camera.MoveUp();
+            else if (cursorBounds.Bottom > viewBounds.Bottom)
+                _camera.MoveDown();
+            else if (cursorBounds.Left < viewBounds.Left)
+                _camera.MoveLeft();
+            else if (cursorBounds.Right > viewBounds.Right)
+                _camera.MoveRight();
+            else
+                cursorInView = true;
+        }
+        
     }
 
     private Rectangle GetBounds()
     {
-        return new Rectangle((int)Position.X, (int)Position.Y, (int)CursorSprite.Width, (int)CursorSprite.Height);
+        return new Rectangle((int)_position.X, (int)_position.Y, (int)CursorSprite.Width, (int)CursorSprite.Height);
     }
 }

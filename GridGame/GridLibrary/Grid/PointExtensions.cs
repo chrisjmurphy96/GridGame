@@ -19,6 +19,6 @@ public static class PointExtensions
 
     public static bool IsAbove(this Point point, Point other) => point.Y < other.Y;
     public static bool IsBelow(this Point point, Point other) => point.Y > other.Y;
-    public static bool IsToTheLeftOf(this Point point, Point other) => point.X < other.X;
-    public static bool IsToTheRightOf(this Point point, Point other) => point.X > other.X;
+    public static bool IsLeftOf(this Point point, Point other) => point.X < other.X;
+    public static bool IsRightOf(this Point point, Point other) => point.X > other.X;
 }

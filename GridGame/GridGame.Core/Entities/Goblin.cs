@@ -16,20 +16,20 @@ public class Goblin : IEntity
     public bool IsFriendly => false;
     public bool IsPlayerControllable => false;
 
-    public IMove DefaultAttack { get; }
+    public IMove SelectedMove { get; set; }
 
     public List<IMove> Moves { get; }
 
     public Goblin(TextureRegion textureRegion)
     {
         Texture = textureRegion;
-        DefaultAttack = new MeleeAttack
+        SelectedMove = new MeleeAttack
         {
             Name = "Gobbo Attack",
             Damage = 5,
             HitChance = 65,
             CritChance = 3
         };
-        Moves = [new WaitMove(), DefaultAttack];
+        Moves = [SelectedMove];
     }
 }

@@ -15,19 +15,19 @@ public class Fighter : IEntity
     public int MovementRange => 6;
     public bool IsFriendly => true;
     public bool IsPlayerControllable => true;
-    public IMove DefaultAttack { get; }
+    public IMove SelectedMove { get; set; }
     public List<IMove> Moves { get; }
 
     public Fighter(TextureRegion texture)
     {
         Texture = texture;
-        DefaultAttack = new MeleeAttack
+        SelectedMove = new MeleeAttack
         {
             Name = "Melee Attack",
             Damage = 8,
             HitChance = 80,
             CritChance = 5
         };
-        Moves = [new WaitMove(), DefaultAttack];
+        Moves = [SelectedMove];
     }
 }

@@ -12,6 +12,6 @@ public interface IEntity
     public int MovementRange { get; }
     public bool IsFriendly { get; }
     public bool IsPlayerControllable { get; }
-    public IMove DefaultAttack { get; }
+    public IMove SelectedMove { get; set; }
     public List<IMove> Moves { get; }
 }

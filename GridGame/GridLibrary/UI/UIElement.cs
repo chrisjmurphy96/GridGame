@@ -15,11 +15,11 @@ namespace GridLibrary.UI;
 /// calculated based on the parents bounds. If you want "global",
 /// just don't attach it to a parent (or leave it attached to the root).
 /// </summary>
-public class UIElement
+public class UIElement : IUIElement
 {
-    public UIElement? Parent { get; private set; }
-    public IReadOnlyList<UIElement> Children => _children;
-    private readonly List<UIElement> _children = [];
+    public IUIElement? Parent { get; private set; }
+    public IReadOnlyList<IUIElement> Children => _children;
+    private readonly List<IUIElement> _children = [];
 
     public UIHorizontalPadding HorizontalPadding { get; private set; } = new();
     public UIVerticalPadding VerticalPadding { get; private set; } = new();
@@ -27,94 +27,83 @@ public class UIElement
     public UIValue Height { get; private set; } = new();
     public TextureRegion? Texture { get; private set; }
     public bool IsVisible { get; private set; } = true;
-    public bool IsFocused { get; internal set; } = false;
+    public bool IsFocused => UIRoot.GetFocusedElement() == this;
+    public float LayerDepth { get; private set; } = LayerDepths.StaticUI;
 
     /// <summary>
     /// For convenience this is also setting default Width and Height,
     /// but that might turn out to be unintuitive, AKA a bad idea.
     /// </summary>
-    public T SetTexture<T>(TextureRegion textureRegion) where T : UIElement
+    public IUIElement SetTexture(TextureRegion textureRegion)
     {
         Texture = textureRegion;
         Width.Unit = UIUnit.Pixels;
         Width.Value = textureRegion.Width;
         Height.Unit = UIUnit.Pixels;
         Height.Value = textureRegion.Height;
-        return (T)this;
+        return this;
     }
 
-    public T SetParent<T>(UIElement newParent) where T : UIElement
+    public IUIElement SetParent(IUIElement newParent)
     {
-        Parent?.RemoveChild<UIElement>(this);
-        newParent.AddChild<UIElement>(this);
+        Parent?.RemoveChild(this);
+        newParent.AddChild(this);
         Parent = newParent;
-        return (T)this;
+        return this;
     }
 
-    internal T RemoveChild<T>(UIElement child) where T : UIElement
+    public IUIElement RemoveChild(IUIElement child)
     {
         _children.Remove(child);
-        return (T)this;
+        return this;
     }
 
-    internal T AddChild<T>(UIElement child) where T : UIElement
+    public IUIElement AddChild(IUIElement child)
     {
         _children.Add(child);
-        return (T)this;
+        return this;
     }
 
-    internal T SetIsFocusedCallback<T>() where T : UIElement
-    {
-
-        return (T)this;
-    }
-
-    public T SetIsVisible<T>(bool isVisible) where T : UIElement
+    public IUIElement SetIsVisible(bool isVisible)
     {
         IsVisible = isVisible;
-        return (T)this;
-    } 
+        return this;
+    }
 
-    // public T Focus<T>() where T : UIElement
-    // {
-    //     UIRoot.Focus(this);
-    //     return (T)this;
-    // }
-
-    // public T Unfocus<T>() where T : UIElement
-    // {
-    //     UIRoot.Unfocus();
-    //     return (T)this;
-    // }
-
-    public T PadHorizontal<T>(float value, UIUnit unit, UIHorizontalPaddingOrientation orientation) where T : UIElement
+    public IUIElement PadHorizontal(float value, UIUnit unit, UIHorizontalPaddingOrientation orientation)
     {
         HorizontalPadding.Value = value;
         HorizontalPadding.Unit = unit;
         HorizontalPadding.Orientation = orientation;
-        return (T)this;
+        return this;
     }
 
-    public T PadVertical<T>(float value, UIUnit unit, UIVerticalPaddingOrientation orientation) where T : UIElement
+    public IUIElement PadVertical(float value, UIUnit unit, UIVerticalPaddingOrientation orientation)
     {
         VerticalPadding.Value = value;
         VerticalPadding.Unit = unit;
         VerticalPadding.Orientation = orientation;
-        return (T)this;
+        return this;
     }
 
-    public T SetWidth<T>(int width, UIUnit unit) where T : UIElement
+    public IUIElement SetWidth(int width, UIUnit unit)
     {
         Width.Value = width;
         Width.Unit = unit;
-        return (T)this;
+        return this;
     }
 
-    public T SetHeight<T>(int height, UIUnit unit) where T : UIElement
+    public IUIElement SetHeight(int height, UIUnit unit)
     {
         Height.Value = height;
         Height.Unit = unit;
-        return (T)this;
+        return this;
+    }
+
+    public IUIElement SetLayerDepth(float layerDepth)
+    {
+        LayerDepth = layerDepth;
+        return this;
     }
 
     // public virtual void Update(GameTime gameTime)
@@ -122,7 +111,7 @@ public class UIElement
     //     foreach (UIElement child in _children)
     //         child.Update(gameTime);
     // }
-    public virtual void HandleInput(KeyboardInfo keyboardInfo)
+    public virtual void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
     {
 
     }
@@ -152,7 +141,7 @@ public class UIElement
                 origin: Vector2.Zero,
                 scale: scale,
                 SpriteEffects.None,
-                layerDepth: 1.0f);
+                layerDepth: LayerDepth);
         }
 
         float widthInPixels = Width.Unit switch
@@ -169,7 +158,7 @@ public class UIElement
         };
         Rectangle currentBounds = new((int)position.X, (int)position.Y, (int)widthInPixels, (int)heightInPixels);
 
-        foreach (UIElement child in _children)
+        foreach (IUIElement child in _children)
         {
             if (child.IsVisible)
                 child.Draw(spriteBatch, currentBounds);

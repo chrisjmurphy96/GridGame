@@ -27,6 +27,11 @@ public class Core : Game
             IsFullScreen = true
         };
 
+        // This setting (VSync) is true by default. So our frame rate won't exceed the
+        // monitor's refresh rate. Setting it to false allows our framerate to boost to the
+        // moon, but for no real benefit. This is an interesting way to test actual performance though!
+        // _graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
+
         // Creates the GraphicsDevice.
         _graphicsDeviceManager.ApplyChanges();
 
@@ -86,8 +91,6 @@ public class Core : Game
     {
         // If there is an active scene, draw it.
         _sceneManager.Draw(gameTime);
-        // If there are any UI elements, draw them.
-        _uiRoot.Draw();
 
         base.Draw(gameTime);
     }

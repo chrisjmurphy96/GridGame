@@ -2,3 +2,10 @@
 **/obj/**
 GridGame/GridGame.iOS/obj/Debug/net9.0-ios/iossimulator-x64/GridGame.iOS.AssemblyInfoInputs.cache
 GridGame/GridGame.iOS/obj/Debug/net9.0-ios/iossimulator-x64/GridGame.iOS.csproj.AssemblyReference.cache
+/GridGame/.vs/GridGame
+/GridGame/GridGame.DesktopGL/Content/Images/basic-map/simplified/Level_0/Tiles.png
+/GridGame/GridGame.DesktopGL/Content/Images/basic-map/simplified/Level_0/_composite.png
+/GridGame/GridGame.DesktopGL/Content/Images/basic-map/simplified/Menzobara_River/data.json
+/GridGame/GridGame.DesktopGL/Content/Images/basic-map/simplified/Menzobara_River/Tiles.png
+/GridGame/GridGame.DesktopGL/Content/Images/basic-map/simplified/Menzobara_River/_composite.png
+/References
