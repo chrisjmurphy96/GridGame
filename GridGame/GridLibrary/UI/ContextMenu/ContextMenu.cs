@@ -54,10 +54,6 @@ public class ContextMenu : UIElement, IRouteableElement
     {
         _menuItems.Clear();
         _menuItems.Add(new WaitContextMenuItem());
-        // TODO: For now I'm just always resetting the index
-        // I believe FE actually keeps track of this as long as the player hasn't moved.
-        // I'm not sure if this is practical to do with my current routing architecture.
-        FocusIndex = 0;
         Point position = GridState.Instance.ActiveEntity?.position ?? throw new ArgumentException($"No active {nameof(position)}");
         if (Performer is null)
             throw new ArgumentException($"No {nameof(Performer)}");
@@ -66,6 +62,7 @@ public class ContextMenu : UIElement, IRouteableElement
         {
             GridState.MoveActiveEntityToCursor();
             GridState.Instance.PotentialMove = GridState.Instance.CursorPosition;
+            FocusIndex = 0;
         }
         else // we are coming back from cancelling a move
         {
