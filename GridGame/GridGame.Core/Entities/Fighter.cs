@@ -17,6 +17,7 @@ public class Fighter : IEntity
     public bool IsPlayerControllable => true;
     public IMove SelectedMove { get; set; }
     public List<IMove> Moves { get; }
+    public bool HasMoved { get; set; }
 
     public Fighter(TextureRegion texture)
     {

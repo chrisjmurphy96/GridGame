@@ -14,6 +14,8 @@ public struct LdtkEntityInstance
 
     public readonly Point Position => new(Grid[0], Grid[1]);
 
+    public LdtkFieldInstance[] FieldInstances { get; set; }
+
     // I could have the texture coordinates be part of custom data.
     // Maybe if it gets annoying managing it in the codebase.
 }

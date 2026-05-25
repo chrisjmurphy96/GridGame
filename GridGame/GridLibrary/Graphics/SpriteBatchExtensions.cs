@@ -9,6 +9,8 @@ namespace Microsoft.Xna.Framework.Graphics;
 
 public static class SpriteBatchExtensions
 {
+    private static Color Inactive = new(100, 100, 100);
+
     public static void Draw(
         this SpriteBatch spriteBatch,
         Dictionary<Point, IEntity> entities,
@@ -18,12 +20,13 @@ public static class SpriteBatchExtensions
         Vector2 scale = Vector2.One * scalar;
         foreach((Point position, IEntity entity) in entities)
         {
+            Color color = entity.HasMoved ? Inactive : Color.White;
             int spriteSize = entity.Texture.Width;
             Vector2 positionVector = position.ToVector2() * scalar * spriteSize;
             spriteBatch.Draw(
                 textureRegion: entity.Texture,
                 positionVector,
-                Color.White,
+                color,
                 rotation: 0,
                 origin: Vector2.Zero,
                 scale: scale,

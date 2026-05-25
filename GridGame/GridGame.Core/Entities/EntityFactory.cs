@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Ldtk;
@@ -28,15 +29,27 @@ public static class EntityFactory
         if (!identifierToTexture.TryGetValue(entityInstance.Identifier, out TextureRegion? textureRegion))
             throw new ArgumentException($"No texture mapped for {entityInstance.Identifier}");
 
+        IEntity entity;
         if (entityInstance.Identifier == Fighter.LdtkIdentifier)
         {
-            return new Fighter(textureRegion);
+            entity = new Fighter(textureRegion);
         }
         else if (entityInstance.Identifier == Goblin.LdtkIdentifier)
         {
-            return new Goblin(textureRegion);
+            entity = new Goblin(textureRegion);
         }
+        else
+            throw new NotImplementedException();
 
-        throw new NotImplementedException();
+        IEnumerable<LdtkFieldInstance> healthInstances = entityInstance.FieldInstances.Where(fieldInstance => fieldInstance.Identifier == "StartingHealth");
+        if (healthInstances.Count() is 1)
+        {
+            entity.Health.SetMaxAndCurrent(healthInstances.First().Value.GetValue<int>());
+        }
+        else if (healthInstances.Count() > 1)
+        {
+            throw new ArgumentException($"Cannot have more than one StartingHealth. {entityInstance.Identifier}, {entityInstance.Position}");
+        }
+        return entity;
     }
 }
