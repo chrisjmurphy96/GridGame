@@ -144,18 +144,8 @@ public class UIElement : IUIElement
                 layerDepth: LayerDepth);
         }
 
-        float widthInPixels = Width.Unit switch
-        {
-            UIUnit.Pixels => Width.Value,
-            UIUnit.Percentage => parentBounds.Width * (Width.Value / 100),
-            _ => throw new NotImplementedException()
-        };
-        float heightInPixels = Height.Unit switch
-        {
-            UIUnit.Pixels => Height.Value,
-            UIUnit.Percentage => parentBounds.Height * (Height.Value / 100),
-            _ => throw new NotImplementedException()
-        };
+        float widthInPixels = GetWidth(parentBounds);
+        float heightInPixels = GetHeight(parentBounds);
         Rectangle currentBounds = new((int)position.X, (int)position.Y, (int)widthInPixels, (int)heightInPixels);
 
         foreach (IUIElement child in _children)
@@ -163,6 +153,26 @@ public class UIElement : IUIElement
             if (child.IsVisible)
                 child.Draw(spriteBatch, currentBounds);
         }
+    }
+
+    protected float GetWidth(Rectangle parentBounds)
+    {
+        return Width.Unit switch
+        {
+            UIUnit.Pixels => Width.Value,
+            UIUnit.Percentage => parentBounds.Width * (Width.Value / 100),
+            _ => throw new NotImplementedException()
+        };
+    }
+
+    protected float GetHeight(Rectangle parentBounds)
+    {
+        return Height.Unit switch
+        {
+            UIUnit.Pixels => Height.Value,
+            UIUnit.Percentage => parentBounds.Height * (Height.Value / 100),
+            _ => throw new NotImplementedException()
+        };
     }
 
     protected float GetYScale(Rectangle parentBounds)

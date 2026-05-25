@@ -222,22 +222,43 @@ public class MovePreview : UIElement, IRouteableElement
             Y = GetPositionY(parentBounds)
         };
 
+        // Performer name should be in the top left corner
         Color textColor = Color.Black;
         Vector2 performerNamePosition = movePreviewPosition + (new Vector2(2, 2) * scale);
         spriteBatch.DrawString(Font, Performer.DisplayName, performerNamePosition, textColor);
 
-        Vector2 statPosition = movePreviewPosition + (new Vector2(x: 50, y: 12) * scale);
+        Vector2 performerStatPosition = movePreviewPosition + (new Vector2(x: 50, y: 12) * scale);
         IEntity perfomer = Performer;
-        List<int> stats = [
+        List<int> performerStats = [
             perfomer.Health.CurrentHealth,
             Move.Damage,
             Move.HitChance,
             Move.CritChance
         ];
-        foreach(int stat in stats)
+        foreach(int stat in performerStats)
         {
-            spriteBatch.DrawString(Font, stat.ToString(), statPosition, Color.Black);
-            statPosition += new Vector2(x: 0, y: Font.LineSpacing + yScale);
+            spriteBatch.DrawString(Font, stat.ToString(), performerStatPosition, Color.Black);
+            performerStatPosition += new Vector2(x: 0, y: Font.LineSpacing + yScale);
         }
+        IEntity enemy = GridState.Instance.Entities[GridState.Instance.CursorPosition];
+        List<int> enemyStats = [
+            enemy.Health.CurrentHealth,
+            enemy.SelectedMove.Damage,
+            enemy.SelectedMove.HitChance,
+            enemy.SelectedMove.CritChance
+        ];
+        Vector2 enemyStatPosition = movePreviewPosition + (new Vector2(x: 2, y: 12) * scale);
+        foreach (int stat in enemyStats)
+        {
+            spriteBatch.DrawString(Font, stat.ToString(), enemyStatPosition, Color.Black);
+            enemyStatPosition += new Vector2(x: 0, y: Font.LineSpacing + yScale);
+        }
+
+        // Put the enemy name in the bottom right corner
+        Vector2 stringSize = Font.MeasureString(enemy.DisplayName);
+        float enemyNameXPosition = movePreviewPosition.X + GetWidth(parentBounds) - (2 * scale.X) - stringSize.X;
+        float enemyNameYPosition = movePreviewPosition.Y + GetHeight(parentBounds) - (2 * scale.Y) - stringSize.Y;
+        Vector2 enemyNamePosition = new(enemyNameXPosition, enemyNameYPosition);
+        spriteBatch.DrawString(Font, enemy.DisplayName, enemyNamePosition, textColor);
     }
 }
