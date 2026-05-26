@@ -11,7 +11,7 @@ public class Fighter : IEntity
     
     public string DisplayName => "Gigough Chad";
     public TextureRegion Texture { get; }
-    public EntityHealth Health { get; } = new EntityHealth(80);
+    public EntityHealth Health { get; } = new EntityHealth(40);
     public int MovementRange => 6;
     public bool IsFriendly => true;
     public bool IsPlayerControllable => true;

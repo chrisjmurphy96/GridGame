@@ -186,9 +186,10 @@ public class MovePreview : UIElement, IRouteableElement
         else if (keyboardInfo.WasKeyJustPressed(Keys.Z))
         {
             if (AttackOverlay.AttackPoints.Count is 0)
-            {
                 Router.RouteTo(DefaultRoutes.Grid);
-            }
+            else
+                Router.RouteTo(DefaultRoutes.AttackContainer);
+            AttackOverlay.Hide();
         }
         else if (keyboardInfo.WasKeyJustPressed(Keys.X))
         {

@@ -155,6 +155,20 @@ public class UIElement : IUIElement
         }
     }
 
+    protected Vector2 GetCenter(Rectangle parentBounds)
+    {
+        float x = GetPositionX(parentBounds);
+        float y = GetPositionY(parentBounds);
+        float width = GetWidth(parentBounds);
+        float height = GetHeight(parentBounds);
+
+        return new Vector2
+        {
+            X = x + (width / 2),
+            Y = y + (height / 2),
+        };
+    }
+
     protected float GetWidth(Rectangle parentBounds)
     {
         return Width.Unit switch

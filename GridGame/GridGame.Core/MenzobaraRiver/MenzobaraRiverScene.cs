@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using GridGame.Core.Entities;
 using GridLibrary;
 using GridLibrary.Entities;
@@ -12,6 +13,7 @@ using GridLibrary.Ldtk;
 using GridLibrary.Routing;
 using GridLibrary.Scenes;
 using GridLibrary.UI;
+using GridLibrary.UI.AttackScene;
 using GridLibrary.UI.ContextMenu;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -60,7 +62,6 @@ public class MenzobaraRiverScene(
         stopwatch.Start();
 
         GridState.Save();
-
 
         _font = _assetManager.Load<MenzobaraRiverScene, SpriteFont>(Path.Combine("Fonts", "Hud"));
         LdtkProjectFile ldtkProjectFile = _ldtkImporter.Import(Path.Combine("Images", "basic-map.ldtk"));
@@ -252,7 +253,7 @@ public class MenzobaraRiverScene(
             movementArrow,
             moveOverlay,
             enemyMoveOverlayTexture,
-            _font);
+            debugFont: null);
         // don't attach Grid to the root, we want to control how it's drawn
         UIRoot.Focus(_grid);
         Router.AddDefaultRoutes(_grid, movementArrow, contextMenu, movePreview);
@@ -264,6 +265,75 @@ public class MenzobaraRiverScene(
             Width = level.LayerWidth * _grid.Scalar,
             Height = level.LayerHeight * _grid.Scalar
         };
+
+        Texture2D attackSceneAtlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "attack-scene"));
+        TextureRegion enemyNameBannerTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(0, 0, 48, 16)
+        };
+        TextureRegion friendlyNameBannerTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(48, 0, 48, 16)
+        };
+        TextureRegion healthBarActiveTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(0, 80, 3, 9)
+        };
+        TextureRegion healthBarInactiveTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(3, 80, 3, 9)
+        };
+        TextureRegion enemyHealthBannerTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(0, 64, 96, 16)
+        };
+        TextureRegion friendlyHealthBannerTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(96, 64, 96, 16)
+        };
+        TextureRegion enemyAttackBannerTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(0, 16, 48, 16)
+        };
+        TextureRegion friendlyAttackBannerTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(48, 16, 48, 16)
+        };
+        TextureRegion enemyStatBoxTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(0, 32, 25, 25)
+        };
+        TextureRegion friendlyStatBoxTexture = new()
+        {
+            Texture = attackSceneAtlas,
+            SourceRectangle = new Rectangle(71, 32, 25, 25)
+        };
+        AttackContainer attackContainer = new ();
+        attackContainer
+            //.SetEnemy(GridState.Instance.Entities.ElementAt(0).Value)
+            //.SetFriendly(GridState.Instance.Entities.ElementAt(1).Value)
+            .SetEnemyNameBannerTexture(enemyNameBannerTexture)
+            .SetFriendlyNameBannerTexture(friendlyNameBannerTexture)
+            .SetHealthBarTextures(healthBarActiveTexture, healthBarInactiveTexture)
+            .SetEnemyHealthBannerTexture(enemyHealthBannerTexture)
+            .SetFriendlyHealthBannerTexture(friendlyHealthBannerTexture)
+            .SetEnemyAttackBannerTexture(enemyAttackBannerTexture)
+            .SetFriendlyAttackBannerTexture(friendlyAttackBannerTexture)
+            .SetEnemyStatBoxTexture(enemyStatBoxTexture)
+            .SetFriendlyStatBoxTexture(friendlyStatBoxTexture)
+            .SetFont(_font)
+            .SetIsVisible(false);
+        UIRoot.RootToScreen(attackContainer);
+        Router.RegisterRoute(DefaultRoutes.AttackContainer, attackContainer);
 
         stopwatch.Stop();
 

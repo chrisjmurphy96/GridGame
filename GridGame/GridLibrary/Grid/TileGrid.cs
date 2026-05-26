@@ -26,7 +26,7 @@ public class TileGrid : UIElement, IRouteableElement
     public MoveOverlay MoveOverlay { get; }
     public TextureRegion EnemyMoveOverlayTexture { get; }
 
-    private readonly SpriteFont _debugFont;
+    private readonly SpriteFont? _debugFont;
 
     private readonly static TimeSpan MOVE_DELAY = TimeSpan.FromMilliseconds(100);
     public List<MoveOverlay> EnemyMoveOverlays { get; } = [];
@@ -41,7 +41,7 @@ public class TileGrid : UIElement, IRouteableElement
         MovementArrow movementArrow,
         MoveOverlay moveOverlay,
         TextureRegion enemyMoveOverlayTexture,
-        SpriteFont debugFont)
+        SpriteFont? debugFont)
     {
         GridOverlay = gridOverlayTexture;
         Scalar = scalar;
@@ -49,7 +49,7 @@ public class TileGrid : UIElement, IRouteableElement
         MovementArrow = movementArrow;
         MoveOverlay = moveOverlay;
         EnemyMoveOverlayTexture = enemyMoveOverlayTexture;
-        this._debugFont = debugFont;
+        _debugFont = debugFont;
     }
 
     public void Initialize() { }
