@@ -57,10 +57,6 @@ public class MovePreview : UIElement, IRouteableElement
         }
     }
 
-    /// <summary>
-    /// TODO: In Echoes, you actually can't select a square to attack unless it contains an enemy.
-    /// That's probably a simple check to add.
-    /// </summary>
     public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
     {
         if (!IsVisible)

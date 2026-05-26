@@ -9,4 +9,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="UI\AttackScene\" />
+  </ItemGroup>
 </Project>
