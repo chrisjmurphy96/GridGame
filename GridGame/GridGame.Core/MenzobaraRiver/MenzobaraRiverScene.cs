@@ -238,10 +238,10 @@ public class MenzobaraRiverScene(
 
         Dictionary<string, TileInfo> enumNameToTileInfo = new()
         {
-            { "Forest", new TileInfo { DodgeModifier = 20, ArmorModifier = 1 } },
-            { "River", new TileInfo { CanWalk = false } },
-            { "Bridge", TileInfo.Default },
-            { "Grass", TileInfo.Default }
+            { "Forest", new TileInfo("Forest") { DodgeModifier = 20, ArmorModifier = 1 } },
+            { "River", new TileInfo("River") { CanWalk = false } },
+            { "Bridge", new TileInfo("Bridge") },
+            { "Grass", new TileInfo("Grass") }
         };
 
         GridTileList tiles = GridTileList.FromLevel(ldtkProjectFile, levelName, atlas, enumNameToTileInfo);
@@ -280,12 +280,12 @@ public class MenzobaraRiverScene(
         TextureRegion healthBarActiveTexture = new()
         {
             Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(0, 80, 3, 9)
+            SourceRectangle = new Rectangle(0, 96, 3, 9)
         };
         TextureRegion healthBarInactiveTexture = new()
         {
             Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(3, 80, 3, 9)
+            SourceRectangle = new Rectangle(3, 96, 3, 9)
         };
         TextureRegion enemyHealthBannerTexture = new()
         {
@@ -295,7 +295,7 @@ public class MenzobaraRiverScene(
         TextureRegion friendlyHealthBannerTexture = new()
         {
             Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(96, 64, 96, 16)
+            SourceRectangle = new Rectangle(0, 80, 96, 16)
         };
         TextureRegion enemyAttackBannerTexture = new()
         {
@@ -317,6 +317,22 @@ public class MenzobaraRiverScene(
             Texture = attackSceneAtlas,
             SourceRectangle = new Rectangle(71, 32, 25, 25)
         };
+        Texture2D attackSceneTerrainAtlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "attack-scene-terrain"));
+        TextureRegion forestTerrainTexture = new()
+        {
+            Texture = attackSceneTerrainAtlas,
+            SourceRectangle = new Rectangle(0, 0, 32, 19)
+        };
+        TextureRegion grassTerrainTexture = new()
+        {
+            Texture = attackSceneTerrainAtlas,
+            SourceRectangle = new Rectangle(32, 0, 32, 19)
+        };
+        Dictionary<string, TextureRegion> terrainTypeToTexture = new()
+        {
+            { "Forest", forestTerrainTexture },
+            { "Grass", grassTerrainTexture }
+        };
         AttackContainer attackContainer = new ();
         attackContainer
             //.SetEnemy(GridState.Instance.Entities.ElementAt(0).Value)
@@ -330,6 +346,7 @@ public class MenzobaraRiverScene(
             .SetFriendlyAttackBannerTexture(friendlyAttackBannerTexture)
             .SetEnemyStatBoxTexture(enemyStatBoxTexture)
             .SetFriendlyStatBoxTexture(friendlyStatBoxTexture)
+            .SetTerrainTypeToTexture(terrainTypeToTexture)
             .SetFont(_font)
             .SetIsVisible(false);
         UIRoot.RootToScreen(attackContainer);
@@ -351,7 +368,7 @@ public class MenzobaraRiverScene(
         if (_keyboardInfo.WasKeyJustPressed(Keys.H))
             _sceneManager.ChangeScene<OtherScene>();
         
-        _activeTileInfo = GridState.Instance.ActiveTile?.TileInfo ?? new();
+        _activeTileInfo = GridState.Instance.ActiveTile?.TileInfo ?? new(string.Empty);
         
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
@@ -378,7 +395,7 @@ public class MenzobaraRiverScene(
         _spriteBatch.End();
 
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.BackToFront);
-        _spriteBatch.DrawString(_font, _activeTileInfo.ToString(_grid.Cursor.Position), Vector2.Zero, Color.White);
+        //_spriteBatch.DrawString(_font, _activeTileInfo.ToString(_grid.Cursor.Position), Vector2.Zero, Color.White);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _frameCounter.Update(deltaTime);
         string fps = string.Format("FPS: {0}", (int)_frameCounter.AverageFramesPerSecond);

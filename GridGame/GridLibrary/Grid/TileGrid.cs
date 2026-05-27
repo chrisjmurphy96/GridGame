@@ -52,7 +52,16 @@ public class TileGrid : UIElement, IRouteableElement
         _debugFont = debugFont;
     }
 
-    public void Initialize() { }
+    public void Initialize()
+    {
+        (Point position, IEntity _)? activeEntity = GridState.Instance.ActiveEntity;
+        if (activeEntity is not null)
+        {
+            Cursor.SetPosition(activeEntity.Value.position);
+            GridState.Instance.CursorPosition = activeEntity.Value.position;
+            GridState.UnsetActiveEntity();
+        }
+    }
 
     public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
     {

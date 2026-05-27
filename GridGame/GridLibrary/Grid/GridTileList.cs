@@ -94,7 +94,7 @@ public class GridTileList : List<GridTile>
     {
         int gridSize = ldtkLayerInstance.GridSize;
         Animation animation = Animation.FromFrameData(levelAtlas, frameData, gridSize, gridSize);
-        TileInfo tileInfo = tileIdToTileInfo.GetValueOrDefault(ldtkGridTile.TileId) ?? new();
+        TileInfo tileInfo = tileIdToTileInfo.GetValueOrDefault(ldtkGridTile.TileId) ?? new(string.Empty);
         return new AnimatedGridTile(ldtkGridTile.Position, animation, tileInfo);
     }
 
@@ -115,7 +115,7 @@ public class GridTileList : List<GridTile>
                 Height = ldtkLayerInstance.GridSize
             }
         };
-        TileInfo tileInfo = tileIdToTileInfo.GetValueOrDefault(ldtkGridTile.TileId) ?? new();
+        TileInfo tileInfo = tileIdToTileInfo.GetValueOrDefault(ldtkGridTile.TileId) ?? new(string.Empty);
         return new GridTile(ldtkGridTile.Position, texture, tileInfo);
     }
 }

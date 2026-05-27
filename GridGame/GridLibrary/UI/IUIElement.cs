@@ -29,6 +29,7 @@ namespace GridLibrary.UI
         IUIElement SetIsVisible(bool isVisible);
         IUIElement SetLayerDepth(float layerDepth);
         IUIElement SetParent(IUIElement newParent);
+        IUIElement SetSpriteEffects(SpriteEffects spriteEffects);
         IUIElement SetTexture(TextureRegion textureRegion);
         IUIElement SetWidth(int width, UIUnit unit);
     }

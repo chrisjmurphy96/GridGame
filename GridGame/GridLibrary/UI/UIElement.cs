@@ -29,6 +29,7 @@ public class UIElement : IUIElement
     public bool IsVisible { get; private set; } = true;
     public bool IsFocused => UIRoot.GetFocusedElement() == this;
     public float LayerDepth { get; private set; } = LayerDepths.StaticUI;
+    public SpriteEffects SpriteEffects = SpriteEffects.None;
 
     /// <summary>
     /// For convenience this is also setting default Width and Height,
@@ -106,6 +107,12 @@ public class UIElement : IUIElement
         return this;
     }
 
+    public IUIElement SetSpriteEffects(SpriteEffects spriteEffects)
+    {
+        SpriteEffects = spriteEffects;
+        return this;
+    }
+
     // public virtual void Update(GameTime gameTime)
     // {
     //     foreach (UIElement child in _children)
@@ -140,7 +147,7 @@ public class UIElement : IUIElement
                 rotation: 0,
                 origin: Vector2.Zero,
                 scale: scale,
-                SpriteEffects.None,
+                SpriteEffects,
                 layerDepth: LayerDepth);
         }
 

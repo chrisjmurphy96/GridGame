@@ -10,6 +10,7 @@ public class WaitContextMenuItem : IContextMenuItem
     {
         if (GridState.Instance.ActiveEntity is not null)
             GridState.Instance.ActiveEntity.Value.entity.HasMoved = true;
+        GridState.UnsetActiveEntity();
         Router.RouteTo(DefaultRoutes.Grid);
     }
 }
