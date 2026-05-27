@@ -355,6 +355,11 @@ public class MenzobaraRiverScene(
         Router.RegisterRoute(DefaultRoutes.AttackContainer, attackContainer);
         _attackContainer = attackContainer;
 
+        MovementAnimation movementAnimation = new(cursor);
+        movementAnimation.SetIsVisible(false);
+        UIRoot.RootToCamera(movementAnimation);
+        Router.RegisterRoute(DefaultRoutes.MovementAnimation, movementAnimation);
+
         _darkenEffect = _assetManager.Load<MenzobaraRiverScene, Effect>(Path.Combine("Effects", "Darken"));
 
         stopwatch.Stop();

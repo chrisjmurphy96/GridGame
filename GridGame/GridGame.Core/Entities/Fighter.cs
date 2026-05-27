@@ -15,6 +15,7 @@ public class Fighter : IEntity
     public int MovementRange => 6;
     public bool IsFriendly => true;
     public bool IsPlayerControllable => true;
+    public bool IsVisible { get; set; } = true;
     public IMove SelectedMove { get; set; }
     public List<IMove> Moves { get; }
     public bool HasMoved { get; set; }

@@ -15,6 +15,7 @@ public class Goblin : IEntity
     public int MovementRange => 5;
     public bool IsFriendly => false;
     public bool IsPlayerControllable => false;
+    public bool IsVisible { get; set; } = true;
 
     public IMove SelectedMove { get; set; }
 

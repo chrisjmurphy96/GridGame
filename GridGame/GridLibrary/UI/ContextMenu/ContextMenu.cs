@@ -57,6 +57,8 @@ public class ContextMenu : UIElement, IRouteableElement
         Point position = GridState.Instance.ActiveEntity?.position ?? throw new ArgumentException($"No active {nameof(position)}");
         if (Performer is null)
             throw new ArgumentException($"No {nameof(Performer)}");
+        Performer.IsVisible = true;
+        Cursor.Show();
         // First time opening the menu
         if (GridState.Instance.Entities.ContainsKey(position))
         {

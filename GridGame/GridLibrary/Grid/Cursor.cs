@@ -14,6 +14,7 @@ public class Cursor
     private readonly Camera _camera;
 
     public AnimatedSprite CursorSprite { get; }
+    public bool IsVisible { get; private set; } = true;
 
     public Cursor(Camera camera, AnimatedSprite cursorSprite)
     {
@@ -50,6 +51,16 @@ public class Cursor
     public void MoveDown() => Move(Vector2.UnitY);
     public void MoveLeft() => Move(-Vector2.UnitX);
     public void MoveRight() => Move(Vector2.UnitX);
+
+    public void Show()
+    {
+        IsVisible = true;
+    }
+
+    public void Hide()
+    {
+        IsVisible = false;
+    }
 
     private void FixPosition()
     {

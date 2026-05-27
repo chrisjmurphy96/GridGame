@@ -27,7 +27,7 @@ public class MovementArrow : UIElement, IRouteableElement
     public required TextureRegion StartTexture { get; init; }
 
 
-    private readonly static TimeSpan MOVE_DELAY = TimeSpan.FromMilliseconds(100);
+    private readonly static TimeSpan MOVE_INPUT_DELAY = TimeSpan.FromMilliseconds(100);
 
     public MovementArrow(Cursor cursor, MoveOverlay moveOverlay)
     {
@@ -42,6 +42,7 @@ public class MovementArrow : UIElement, IRouteableElement
         GridState.ResetActiveEntityPosition();
         (Point position, IEntity entity) = 
             GridState.Instance.ActiveEntity ?? throw new ArgumentException($"No {nameof(GridState.Instance.ActiveEntity)}");
+        _cursor.Show();
 
         StartPosition = position;
         Path = [StartPosition];
@@ -65,25 +66,25 @@ public class MovementArrow : UIElement, IRouteableElement
     public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
     {
         if (keyboardInfo.WasKeyJustPressed(Keys.Down) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Down, MOVE_DELAY))
+            keyboardInfo.IsKeyHeldDown(Keys.Down, MOVE_INPUT_DELAY))
         {
             keyboardInfo.ResetKeyHold(Keys.Down);
             MoveCursorDown();
         }
         if (keyboardInfo.WasKeyJustPressed(Keys.Up) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Up, MOVE_DELAY))
+            keyboardInfo.IsKeyHeldDown(Keys.Up, MOVE_INPUT_DELAY))
         {
             keyboardInfo.ResetKeyHold(Keys.Up);
             MoveCursorUp();
         }
         if (keyboardInfo.WasKeyJustPressed(Keys.Right) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Right, MOVE_DELAY))
+            keyboardInfo.IsKeyHeldDown(Keys.Right, MOVE_INPUT_DELAY))
         {   
             keyboardInfo.ResetKeyHold(Keys.Right);
             MoveCursorRight();
         }
         if (keyboardInfo.WasKeyJustPressed(Keys.Left) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Left, MOVE_DELAY))
+            keyboardInfo.IsKeyHeldDown(Keys.Left, MOVE_INPUT_DELAY))
         {
             keyboardInfo.ResetKeyHold(Keys.Left);
             MoveCursorLeft();
@@ -174,7 +175,8 @@ public class MovementArrow : UIElement, IRouteableElement
     {
         if (!_moveOverlay.MovementPoints.Contains(GridState.Instance.CursorPosition))
             return;
-        Router.RouteTo(DefaultRoutes.ContextMenu);
+        MovementState.Path = Path;
+        Router.RouteTo(DefaultRoutes.MovementAnimation);
     }
 
     public void CancelCursorClick()
@@ -184,18 +186,18 @@ public class MovementArrow : UIElement, IRouteableElement
 
     private static class ArrowDirection
     {
-        public static float Up = Single.DegreesToRadians(0);
-        public static float Down = Single.DegreesToRadians(180);
-        public static float Left = Single.DegreesToRadians(270);
-        public static float Right = Single.DegreesToRadians(90);
+        public static float Up = float.DegreesToRadians(0);
+        public static float Down = float.DegreesToRadians(180);
+        public static float Left = float.DegreesToRadians(270);
+        public static float Right = float.DegreesToRadians(90);
     }
 
     private static class BendDirection
     {
-        public static float UpRightOrLeftDown = Single.DegreesToRadians(0);
-        public static float UpLeftOrRightDown = Single.DegreesToRadians(90);
-        public static float DownRightOrLeftUp = Single.DegreesToRadians(270);
-        public static float DownLeftOrRightUp = Single.DegreesToRadians(180);
+        public static float UpRightOrLeftDown = float.DegreesToRadians(0);
+        public static float UpLeftOrRightDown = float.DegreesToRadians(90);
+        public static float DownRightOrLeftUp = float.DegreesToRadians(270);
+        public static float DownLeftOrRightUp = float.DegreesToRadians(180);
     }
 
     public override void Draw(SpriteBatch spriteBatch, Rectangle parentBounds)
@@ -205,8 +207,6 @@ public class MovementArrow : UIElement, IRouteableElement
         int scalar = 4;
         spriteBatch.Draw(_moveOverlay, 4);
         base.Draw(spriteBatch, parentBounds);
-
-
 
         // Since we have to center the origin for nice rotation, we need an offset
         // to re-center the sprite on the grid.

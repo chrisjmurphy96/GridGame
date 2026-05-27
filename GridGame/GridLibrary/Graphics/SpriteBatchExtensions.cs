@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Grid;
-using GridLibrary.UI;
+using System.Collections.Generic;
 
 namespace Microsoft.Xna.Framework.Graphics;
 
@@ -20,6 +18,9 @@ public static class SpriteBatchExtensions
         Vector2 scale = Vector2.One * scalar;
         foreach((Point position, IEntity entity) in entities)
         {
+            if (!entity.IsVisible)
+                continue;
+
             Color color = entity.HasMoved ? Inactive : Color.White;
             int spriteSize = entity.Texture.Width;
             Vector2 positionVector = position.ToVector2() * scalar * spriteSize;
@@ -107,7 +108,8 @@ public static class SpriteBatchExtensions
 
     public static void Draw(this SpriteBatch spriteBatch, Cursor cursor)
     {
-        spriteBatch.Draw(cursor.CursorSprite, cursor.Position);
+        if (cursor.IsVisible)
+            spriteBatch.Draw(cursor.CursorSprite, cursor.Position);
     }
 
     /// <summary>
