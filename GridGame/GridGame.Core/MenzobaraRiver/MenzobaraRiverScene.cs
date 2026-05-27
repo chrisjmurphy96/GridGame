@@ -49,6 +49,8 @@ public class MenzobaraRiverScene(
 
     private static readonly TimeSpan MoveDelay = TimeSpan.FromMilliseconds(100);
     private bool _showGrid = false;
+    private AttackContainer _attackContainer;
+    private Effect _darkenEffect;
 
     public override void Initialize()
     {
@@ -351,6 +353,9 @@ public class MenzobaraRiverScene(
             .SetIsVisible(false);
         UIRoot.RootToScreen(attackContainer);
         Router.RegisterRoute(DefaultRoutes.AttackContainer, attackContainer);
+        _attackContainer = attackContainer;
+
+        _darkenEffect = _assetManager.Load<MenzobaraRiverScene, Effect>(Path.Combine("Effects", "Darken"));
 
         stopwatch.Stop();
 
@@ -389,7 +394,12 @@ public class MenzobaraRiverScene(
     {
         _graphicsDevice.Clear(Color.MonoGameOrange);
 
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: _camera.GetViewMatrix(), sortMode: SpriteSortMode.BackToFront);
+        Effect? effect = _attackContainer.IsVisible ? _darkenEffect : null;
+        _spriteBatch.Begin(
+            samplerState: SamplerState.PointClamp,
+            transformMatrix: _camera.GetViewMatrix(),
+            sortMode: SpriteSortMode.BackToFront,
+            effect: effect);
         _grid.Draw(_spriteBatch, _camera.CameraBounds);
         _uiRoot.DrawCameraElements();
         _spriteBatch.End();
