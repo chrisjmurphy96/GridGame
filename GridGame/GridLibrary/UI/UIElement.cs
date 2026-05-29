@@ -45,6 +45,15 @@ public class UIElement : IUIElement
         return this;
     }
 
+    /// <summary>
+    /// I think I want to migrate away from the one above
+    /// </summary>
+    public IUIElement SetTextureNoDefaults(TextureRegion textureRegion)
+    {
+        Texture = textureRegion;
+        return this;
+    }
+
     public IUIElement SetParent(IUIElement newParent)
     {
         Parent?.RemoveChild(this);
@@ -113,11 +122,12 @@ public class UIElement : IUIElement
         return this;
     }
 
-    // public virtual void Update(GameTime gameTime)
-    // {
-    //     foreach (UIElement child in _children)
-    //         child.Update(gameTime);
-    // }
+    public virtual void Update(GameTime gameTime)
+    {
+        foreach (IUIElement child in _children)
+            child.Update(gameTime);
+    }
+
     public virtual void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
     {
 

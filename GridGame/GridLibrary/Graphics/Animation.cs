@@ -19,6 +19,9 @@ public class Animation
     /// </summary>
     public TimeSpan Delay { get; set; } = DefaultDelay;
 
+    public bool Loop { get; set; } = true;
+    public bool ReachedLoopEnd { get; private set; } = false;
+
     /// <summary>
     /// 100 Milliseconds
     /// </summary>
@@ -61,6 +64,9 @@ public class Animation
     /// <param name="gameTime">A snapshot of the game timing values provided by the framework.</param>
     public void Update(GameTime gameTime)
     {
+        if (!Loop && ReachedLoopEnd)
+            return;
+
         _elapsed += gameTime.ElapsedGameTime;
 
         if (_elapsed >= Delay)
@@ -70,8 +76,20 @@ public class Animation
 
             if (_currentFrameIndex >= Frames.Count)
             {
-                _currentFrameIndex = 0;
+                if (Loop)
+                    _currentFrameIndex = 0;
+                else
+                    _currentFrameIndex = Frames.Count - 1;
+                ReachedLoopEnd = true;
             }
+            else
+                ReachedLoopEnd = false;
         }
+    }
+
+    public void Reset()
+    {
+        _currentFrameIndex = 0;
+        ReachedLoopEnd = false;
     }
 }

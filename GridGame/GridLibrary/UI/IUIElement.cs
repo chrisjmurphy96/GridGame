@@ -31,6 +31,8 @@ namespace GridLibrary.UI
         IUIElement SetParent(IUIElement newParent);
         IUIElement SetSpriteEffects(SpriteEffects spriteEffects);
         IUIElement SetTexture(TextureRegion textureRegion);
+        IUIElement SetTextureNoDefaults(TextureRegion textureRegion);
         IUIElement SetWidth(int width, UIUnit unit);
+        void Update(GameTime gameTime);
     }
 }

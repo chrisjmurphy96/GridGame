@@ -31,6 +31,10 @@ public class AttackContainer : UIElement, IRouteableElement
     private readonly UIElement _friendlyTerrain = new();
     private Dictionary<string, TextureRegion> _terrainTypeToTexture = [];
 
+    private readonly AnimatedElement _enemyAnimation = new();
+    private readonly AnimatedElement _friendlyAnimation = new();
+    private Dictionary<string, Animation> _entityDisplayNameToAnimation = [];
+
     public AttackContainer() : base()
     {
         SetWidth(100, UIUnit.Percentage);
@@ -98,6 +102,22 @@ public class AttackContainer : UIElement, IRouteableElement
             .PadHorizontal(10, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromRight)
             .PadVertical(33, UIUnit.Percentage, UIVerticalPaddingOrientation.FromBottom)
             .SetSpriteEffects(SpriteEffects.FlipHorizontally);
+
+        _enemyAnimation
+            .SetParent(this)
+            .SetLayerDepth(LayerDepths.StaticUI - 0.05f)
+            .PadHorizontal(25, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
+            .PadVertical(50, UIUnit.Percentage, UIVerticalPaddingOrientation.FromBottom)
+            .SetWidth(64 * 8, UIUnit.Pixels)
+            .SetHeight(64 * 8, UIUnit.Pixels);
+        _friendlyAnimation
+            .SetParent(this)
+            .SetLayerDepth(LayerDepths.StaticUI - 0.05f)
+            .PadHorizontal(25, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromRight)
+            .PadVertical(50, UIUnit.Percentage, UIVerticalPaddingOrientation.FromBottom)
+            .SetSpriteEffects(SpriteEffects.FlipHorizontally)
+            .SetWidth(64 * 8, UIUnit.Pixels)
+            .SetHeight(64 * 8, UIUnit.Pixels);
     }
 
     /// <summary>
@@ -133,6 +153,13 @@ public class AttackContainer : UIElement, IRouteableElement
         if (!_terrainTypeToTexture.TryGetValue(friendlyTile.TileInfo.TileType, out TextureRegion? friendlyTerrainTexture))
             throw new ArgumentException("No terrain mapped for friendly position");
         SetFriendlyTerrain(friendlyTerrainTexture);
+
+        _enemyAnimation.ResetAnimation().Stop();
+        _friendlyAnimation.ResetAnimation().SetOnAnimationEnd(() =>
+        {
+            _friendlyAnimation.ResetAnimation().Stop();
+            _enemyAnimation.Start();
+        }).Start();
     }
 
     public AttackContainer SetEnemy(IEntity entity)
@@ -141,6 +168,7 @@ public class AttackContainer : UIElement, IRouteableElement
         _enemyHealthBar.SetEntity(entity);
         _enemyAttackBanner.SetMove(entity.SelectedMove);
         _enemyStatBox.SetMove(entity.SelectedMove);
+        _enemyAnimation.SetAnimation(_entityDisplayNameToAnimation[entity.DisplayName]);
         return this;
     }
 
@@ -150,6 +178,7 @@ public class AttackContainer : UIElement, IRouteableElement
         _friendlyHealthBar.SetEntity(entity);
         _friendlyAttackBanner.SetMove(entity.SelectedMove);
         _friendlyStatBox.SetMove(entity.SelectedMove);
+        _friendlyAnimation.SetAnimation(_entityDisplayNameToAnimation[entity.DisplayName]);
         return this;
     }
 
@@ -268,4 +297,22 @@ public class AttackContainer : UIElement, IRouteableElement
         _terrainTypeToTexture = terrainTypeToTexture;
         return this;
     }
+
+    public AttackContainer SetEntityDisplayNameToAnimation(Dictionary<string, Animation> entityDisplayNameToAnimation)
+    {
+        _entityDisplayNameToAnimation = entityDisplayNameToAnimation;
+        return this;
+    }
+
+    //public AttackContainer SetEnemyAnimation(Animation animation)
+    //{
+    //    _enemyAnimation.SetAnimation(animation);
+    //    return this;
+    //}
+
+    //public AttackContainer SetFriendlyAnimation(Animation animation)
+    //{
+    //    _enemyAnimation.SetAnimation(animation);
+    //    return this;
+    //}
 }

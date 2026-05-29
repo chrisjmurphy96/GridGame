@@ -335,6 +335,27 @@ public class MenzobaraRiverScene(
             { "Forest", forestTerrainTexture },
             { "Grass", grassTerrainTexture }
         };
+
+        Texture2D fighterAttackAtlasTexture = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "gigough-attack-animation"));
+        TextureAtlas fighterAttackAtlas = new(fighterAttackAtlasTexture);
+        Animation fighterAttackAnimation = new()
+        {
+            Frames = [
+                fighterAttackAtlas.AddRegion("frame1", new Rectangle(0, 0, 64, 64)),
+                fighterAttackAtlas.AddRegion("frame2", new Rectangle(64, 0, 64, 64)),
+                fighterAttackAtlas.AddRegion("frame3", new Rectangle(128, 0, 64, 64)),
+                fighterAttackAtlas.AddRegion("frame4", new Rectangle(192, 0, 64, 64)),
+                fighterAttackAtlas.AddRegion("frame5", new Rectangle(256, 0, 64, 64)),
+                fighterAttackAtlas.AddRegion("frame6", new Rectangle(320, 0, 64, 64)),
+                fighterAttackAtlas.AddRegion("frame7", new Rectangle(384, 0, 64, 64))
+            ],
+            Loop = false
+        };
+        Dictionary<string, Animation> entityDisplayNameToAnimation = new()
+        {
+            { "Gobbo", fighterAttackAnimation },
+            { "Gigough Chad", fighterAttackAnimation }
+        };
         AttackContainer attackContainer = new ();
         attackContainer
             //.SetEnemy(GridState.Instance.Entities.ElementAt(0).Value)
@@ -349,6 +370,7 @@ public class MenzobaraRiverScene(
             .SetEnemyStatBoxTexture(enemyStatBoxTexture)
             .SetFriendlyStatBoxTexture(friendlyStatBoxTexture)
             .SetTerrainTypeToTexture(terrainTypeToTexture)
+            .SetEntityDisplayNameToAnimation(entityDisplayNameToAnimation)
             .SetFont(_font)
             .SetIsVisible(false);
         UIRoot.RootToScreen(attackContainer);

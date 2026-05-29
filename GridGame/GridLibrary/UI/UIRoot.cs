@@ -70,6 +70,8 @@ public class UIRoot
         }
         else
             _focusedElement?.HandleInput(gameTime, _keyboardInfo);
+        _cameraRoot.Update(gameTime);
+        _screenRoot.Update(gameTime);
     }
 
 

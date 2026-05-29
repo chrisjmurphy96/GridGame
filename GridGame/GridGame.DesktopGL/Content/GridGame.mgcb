@@ -53,6 +53,18 @@
 #begin Images/basic-map.ldtk
 /copy:Images/basic-map.ldtk
 
+#begin Images/gigough-attack-animation.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/gigough-attack-animation.png
+
 #begin Images/placeholder-atlas.png
 /importer:TextureImporter
 /processor:TextureProcessor
