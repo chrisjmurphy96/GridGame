@@ -30,6 +30,13 @@ public class UIElement : IUIElement
     public bool IsFocused => UIRoot.GetFocusedElement() == this;
     public float LayerDepth { get; private set; } = LayerDepths.StaticUI;
     public SpriteEffects SpriteEffects = SpriteEffects.None;
+    private float _opacity = 1;
+
+    public IUIElement SetOpacity(float opacity)
+    {
+        _opacity = opacity;
+        return this;
+    }
 
     /// <summary>
     /// For convenience this is also setting default Width and Height,
@@ -153,7 +160,7 @@ public class UIElement : IUIElement
             spriteBatch.Draw(
                 textureRegion: Texture,
                 position: position,
-                Color.White,
+                Color.White * _opacity,
                 rotation: 0,
                 origin: Vector2.Zero,
                 scale: scale,

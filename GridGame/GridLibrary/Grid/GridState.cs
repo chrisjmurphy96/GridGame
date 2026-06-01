@@ -25,6 +25,7 @@ public class GridState
 {
     [JsonIgnore]
     public GridTile? ActiveTile => Tiles.InBounds(CursorPosition) ? Tiles[CursorPosition] : null;
+    public IEntity? GetHoveredEntity() => Entities.GetValueOrDefault(CursorPosition);
     [JsonIgnore]
     public GridTileList Tiles { get; set; } = new(0);
     public Dictionary<Point, IEntity> Entities { get; set; } = [];
