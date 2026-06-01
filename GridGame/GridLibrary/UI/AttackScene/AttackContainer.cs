@@ -33,7 +33,6 @@ public class AttackContainer : UIElement, IRouteableElement
 
     private readonly AnimatedElement _enemyAnimation = new();
     private readonly AnimatedElement _friendlyAnimation = new();
-    private Dictionary<string, Animation> _entityDisplayNameToAnimation = [];
 
     public AttackContainer() : base()
     {
@@ -106,26 +105,24 @@ public class AttackContainer : UIElement, IRouteableElement
         _enemyAnimation
             .SetParent(this)
             .SetLayerDepth(LayerDepths.StaticUI - 0.05f)
-            .PadHorizontal(25, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
+            .PadHorizontal(25f, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
             .PadVertical(50, UIUnit.Percentage, UIVerticalPaddingOrientation.FromBottom)
-            .SetWidth(64 * 8, UIUnit.Pixels)
-            .SetHeight(64 * 8, UIUnit.Pixels);
+            .SetWidth(128 * 4 * 2, UIUnit.Pixels)
+            .SetHeight(128 * 4 * 2, UIUnit.Pixels);
         _friendlyAnimation
             .SetParent(this)
             .SetLayerDepth(LayerDepths.StaticUI - 0.05f)
-            .PadHorizontal(25, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromRight)
+            .PadHorizontal(25f, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromRight)
             .PadVertical(50, UIUnit.Percentage, UIVerticalPaddingOrientation.FromBottom)
             .SetSpriteEffects(SpriteEffects.FlipHorizontally)
-            .SetWidth(64 * 8, UIUnit.Pixels)
-            .SetHeight(64 * 8, UIUnit.Pixels);
+            .SetWidth(128 * 4 * 2, UIUnit.Pixels)
+            .SetHeight(128 * 4 * 2, UIUnit.Pixels);
     }
 
     /// <summary>
     /// This is just for debugging until the attack/animation logic is in place.
     /// It'll let us continue to navigate around the grid.
     /// </summary>
-    /// <param name="gameTime"></param>
-    /// <param name="keyboardInfo"></param>
     public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
     {
         if (keyboardInfo.WasKeyJustPressed(Microsoft.Xna.Framework.Input.Keys.Z))
@@ -137,28 +134,45 @@ public class AttackContainer : UIElement, IRouteableElement
 
     public void Initialize()
     {
-        (_, IEntity friendly) = GridState.Instance.ActiveEntity ?? throw new ArgumentException("No active entity found");
-        if (!GridState.Instance.Entities.TryGetValue(GridState.Instance.CursorPosition, out IEntity? enemy))
-            throw new ArgumentException("No enemy entity found");
-        SetEnemy(enemy);
-        SetFriendly(friendly);
-
+        (_, IEntity attacker) = GridState.Instance.ActiveEntity ?? throw new ArgumentException("No attacker found");
         Point cursorPosition = GridState.Instance.CursorPosition;
-        GridTile enemyTile = GridState.Instance.Tiles[cursorPosition];
-        if (!_terrainTypeToTexture.TryGetValue(enemyTile.TileInfo.TileType, out TextureRegion? enemyTerrainTexture))
-            throw new ArgumentException("No terrain mapped for enemy position");
-        SetEnemyTerrain(enemyTerrainTexture);
-        Point friendlyPosition = GridState.Instance.PotentialMove ?? throw new ArgumentException("No potential move found");
-        GridTile friendlyTile = GridState.Instance.Tiles[friendlyPosition];
-        if (!_terrainTypeToTexture.TryGetValue(friendlyTile.TileInfo.TileType, out TextureRegion? friendlyTerrainTexture))
-            throw new ArgumentException("No terrain mapped for friendly position");
-        SetFriendlyTerrain(friendlyTerrainTexture);
-
-        _enemyAnimation.ResetAnimation().Stop();
-        _friendlyAnimation.ResetAnimation().SetOnAnimationEnd(() =>
+        if (!GridState.Instance.Entities.TryGetValue(cursorPosition, out IEntity? attacked))
+            throw new ArgumentException("No attacked entity found");
+        if (attacker.IsFriendly == attacked.IsFriendly)
+            throw new ArgumentException($"No friendly fire! IsFriendly: {attacker.IsFriendly}");
+        if (attacker.IsFriendly)
         {
-            _friendlyAnimation.ResetAnimation().Stop();
-            _enemyAnimation.Start();
+            SetFriendly(attacker);
+            SetEnemy(attacked);
+            SetAnimationChain(_friendlyAnimation, _enemyAnimation);
+
+            GridTile enemyTile = GridState.Instance.Tiles[cursorPosition];
+            if (!_terrainTypeToTexture.TryGetValue(enemyTile.TileInfo.TileType, out TextureRegion? enemyTerrainTexture))
+                throw new ArgumentException("No terrain mapped for enemy position");
+            SetEnemyTerrain(enemyTerrainTexture);
+            Point friendlyPosition = GridState.Instance.PotentialMove ?? throw new ArgumentException("No potential move found");
+            GridTile friendlyTile = GridState.Instance.Tiles[friendlyPosition];
+            if (!_terrainTypeToTexture.TryGetValue(friendlyTile.TileInfo.TileType, out TextureRegion? friendlyTerrainTexture))
+                throw new ArgumentException("No terrain mapped for friendly position");
+            SetFriendlyTerrain(friendlyTerrainTexture);
+        }
+        else
+        {
+            SetFriendly(attacked);
+            SetEnemy(attacker);
+            SetAnimationChain(_enemyAnimation, _friendlyAnimation);
+            
+            // TODO: Need to set terrain, but state checks might be different
+        }
+    }
+
+    private static void SetAnimationChain(AnimatedElement attacker, AnimatedElement attacked)
+    {
+        attacked.ResetAnimation().Stop();
+        attacker.ResetAnimation().SetOnAnimationEnd(() =>
+        {
+            attacker.ResetAnimation().Stop();
+            attacked.Start();
         }).Start();
     }
 
@@ -168,7 +182,7 @@ public class AttackContainer : UIElement, IRouteableElement
         _enemyHealthBar.SetEntity(entity);
         _enemyAttackBanner.SetMove(entity.SelectedMove);
         _enemyStatBox.SetMove(entity.SelectedMove);
-        _enemyAnimation.SetAnimation(_entityDisplayNameToAnimation[entity.DisplayName]);
+        _enemyAnimation.SetAnimation(entity.AttackAnimation);
         return this;
     }
 
@@ -178,7 +192,7 @@ public class AttackContainer : UIElement, IRouteableElement
         _friendlyHealthBar.SetEntity(entity);
         _friendlyAttackBanner.SetMove(entity.SelectedMove);
         _friendlyStatBox.SetMove(entity.SelectedMove);
-        _friendlyAnimation.SetAnimation(_entityDisplayNameToAnimation[entity.DisplayName]);
+        _friendlyAnimation.SetAnimation(entity.AttackAnimation);
         return this;
     }
 
@@ -297,22 +311,4 @@ public class AttackContainer : UIElement, IRouteableElement
         _terrainTypeToTexture = terrainTypeToTexture;
         return this;
     }
-
-    public AttackContainer SetEntityDisplayNameToAnimation(Dictionary<string, Animation> entityDisplayNameToAnimation)
-    {
-        _entityDisplayNameToAnimation = entityDisplayNameToAnimation;
-        return this;
-    }
-
-    //public AttackContainer SetEnemyAnimation(Animation animation)
-    //{
-    //    _enemyAnimation.SetAnimation(animation);
-    //    return this;
-    //}
-
-    //public AttackContainer SetFriendlyAnimation(Animation animation)
-    //{
-    //    _enemyAnimation.SetAnimation(animation);
-    //    return this;
-    //}
 }

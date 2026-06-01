@@ -22,10 +22,10 @@ public static class SpriteBatchExtensions
                 continue;
 
             Color color = entity.HasMoved ? Inactive : Color.White;
-            int spriteSize = entity.Texture.Width;
+            int spriteSize = entity.ActiveTexture.Width;
             Vector2 positionVector = position.ToVector2() * scalar * spriteSize;
             spriteBatch.Draw(
-                textureRegion: entity.Texture,
+                textureRegion: entity.ActiveTexture,
                 positionVector,
                 color,
                 rotation: 0,

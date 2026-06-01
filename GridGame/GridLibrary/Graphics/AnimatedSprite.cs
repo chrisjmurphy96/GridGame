@@ -20,7 +20,7 @@ public class AnimatedSprite : BaseSprite
     /// <summary>
     /// Active frame of the animated sprite. This should be drawn to the screen.
     /// </summary>
-    public TextureRegion CurrentFrame => Animation.Frames[_currentFrameIndex];
+    public TextureRegion CurrentFrame => Animation.CurrentFrame;
 
 
     /// <summary>
@@ -38,17 +38,6 @@ public class AnimatedSprite : BaseSprite
     /// <param name="gameTime">A snapshot of the game timing values provided by the framework.</param>
     public void Update(GameTime gameTime)
     {
-        _elapsed += gameTime.ElapsedGameTime;
-
-        if (_elapsed >= Animation.Delay)
-        {
-            _elapsed -= Animation.Delay;
-            _currentFrameIndex++;
-
-            if (_currentFrameIndex >= Animation.Frames.Count)
-            {
-                _currentFrameIndex = 0;
-            }
-        }
+        Animation.Update(gameTime);
     }
 }

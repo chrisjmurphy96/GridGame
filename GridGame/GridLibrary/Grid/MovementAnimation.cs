@@ -73,13 +73,13 @@ public class MovementAnimation : UIElement, IRouteableElement
         Debug.WriteLine(currentIndex);
         Debug.WriteLine(_movementProgress);
 
-        int spriteSize = _entity.Texture.Width;
+        int spriteSize = _entity.ActiveTexture.Width;
         Vector2 current = MovementState.Path[currentIndex].ToVector2();
         Vector2 next = MovementState.Path[nextIndex].ToVector2();
         Vector2 positionVector = Vector2.Lerp(current, next, _movementProgress) * 4 * spriteSize;
         Vector2 scale = Vector2.One * 4;
         spriteBatch.Draw(
-            textureRegion: _entity.Texture,
+            textureRegion: _entity.ActiveTexture,
             positionVector,
             Color.White,
             rotation: 0,

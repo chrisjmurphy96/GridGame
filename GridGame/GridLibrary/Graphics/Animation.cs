@@ -12,7 +12,7 @@ public class Animation
     /// are the order that the frames should be displayed in.
     /// TODO: sorted list might be neat here? Maybe doesn't make much sense, if we have more than a few frames.
     /// </summary>
-    public IReadOnlyList<TextureRegion> Frames { get; init; } = [];
+    public required IReadOnlyList<TextureRegion> Frames { get; init; } = [];
 
     /// <summary>
     /// The amount of time to delay between each frame before moving to the next frame for this animation.
