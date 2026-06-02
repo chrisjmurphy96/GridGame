@@ -1,0 +1,102 @@
+{
+  "directory": "Images",
+  "fileName": "placeholder-atlas",
+  "regionNameToSourceRectangle": {
+    "cursor-1": {
+      "x": 48,
+      "y": 16,
+      "width": 16,
+      "height": 16
+    },
+    "cursor-2": {
+      "x": 48,
+      "y": 32,
+      "width": 16,
+      "height": 16
+    },
+    "gridOverlay": {
+      "x": 0,
+      "y": 32,
+      "width": 16,
+      "height": 16
+    },
+    "movementOverlay": {
+      "x": 48,
+      "y": 48,
+      "width": 16,
+      "height": 16
+    },
+    "attackOverlay": {
+      "x": 32,
+      "y": 48,
+      "width": 16,
+      "height": 16
+    },
+    "arrowHead": {
+      "x": 32,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    "arrowBody": {
+      "x": 48,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    "arrowBend": {
+      "x": 32,
+      "y": 32,
+      "width": 16,
+      "height": 16
+    },
+    "arrowStart": {
+      "x": 32,
+      "y": 16,
+      "width": 16,
+      "height": 16
+    },
+    "goblin": {
+      "x": 0,
+      "y": 48,
+      "width": 16,
+      "height": 16
+    },
+    "fighter": {
+      "x": 16,
+      "y": 48,
+      "width": 16,
+      "height": 16
+    },
+    "contextMenu": {
+      "x": 64,
+      "y": 0,
+      "width": 32,
+      "height": 48
+    },
+    "movePreview": {
+      "x": 64,
+      "y": 48,
+      "width": 64,
+      "height": 48
+    },
+    "focus": {
+      "x": 96,
+      "y": 0,
+      "width": 28,
+      "height": 1
+    },
+    "enemyMoveOverlay": {
+      "x": 48,
+      "y": 64,
+      "width": 16,
+      "height": 16
+    },
+    "mapInfo": {
+      "x": 0,
+      "y": 96,
+      "width": 64,
+      "height": 16
+    }
+  }
+}

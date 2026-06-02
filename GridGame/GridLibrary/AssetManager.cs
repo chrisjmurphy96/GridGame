@@ -14,6 +14,8 @@ public class AssetManager(ContentManager contentManager)
 
     private readonly Dictionary<string, List<Type>> _assets = [];
 
+    public string RootDirectory => _contentManager.RootDirectory;
+
     public T Load<Owner, T>(string assetName)
     {
         Type ownerType = typeof(Owner);

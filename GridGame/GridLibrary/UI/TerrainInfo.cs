@@ -1,5 +1,6 @@
 ﻿using GridLibrary.Graphics;
 using GridLibrary.Grid;
+using GridLibrary.Routing;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -16,8 +17,21 @@ public class TerrainInfo : UIElement
         return this;
     }
 
+    public override void Update(GameTime gameTime)
+    {
+        if (Router.CurrentRoute == DefaultRoutes.AttackContainer)
+            SetIsVisible(false);
+        else
+            SetIsVisible(true);
+
+        base.Update(gameTime);
+    }
+
     public override void Draw(SpriteBatch spriteBatch, Rectangle parentBounds)
     {
+        if (!IsVisible)
+            return;
+
         base.Draw(spriteBatch, parentBounds);
 
         if (_font is null)

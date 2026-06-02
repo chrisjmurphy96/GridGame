@@ -1,6 +1,7 @@
 ﻿using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Grid;
+using GridLibrary.Routing;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -21,7 +22,7 @@ public class CharacterInfo : UIElement
     public override void Update(GameTime gameTime)
     {
         IEntity? hoveredEntity = GridState.Instance.GetHoveredEntity();
-        if (hoveredEntity is not null)
+        if (hoveredEntity is not null && Router.CurrentRoute != DefaultRoutes.AttackContainer)
         {
             _hoveredEntity = hoveredEntity;
             SetIsVisible(true);

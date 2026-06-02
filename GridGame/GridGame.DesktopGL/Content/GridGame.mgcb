@@ -26,6 +26,12 @@
 /processorParam:TextureFormat=Compressed
 /build:Fonts/Hud.spritefont
 
+#begin Images/attack-scene-definition.json
+/copy:Images/attack-scene-definition.json
+
+#begin Images/attack-scene-terrain-definition.json
+/copy:Images/attack-scene-terrain-definition.json
+
 #begin Images/attack-scene-terrain.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -64,6 +70,9 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Images/gigough-attack-animation.png
+
+#begin Images/placeholder-atlas-definition.json
+/copy:Images/placeholder-atlas-definition.json
 
 #begin Images/placeholder-atlas.png
 /importer:TextureImporter

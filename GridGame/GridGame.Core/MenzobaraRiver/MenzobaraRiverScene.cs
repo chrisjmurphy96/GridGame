@@ -7,6 +7,7 @@ using GridGame.Core.Entities;
 using GridLibrary;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
+using GridLibrary.Graphics.TextureAtlas;
 using GridLibrary.Grid;
 using GridLibrary.Input;
 using GridLibrary.Ldtk;
@@ -31,7 +32,8 @@ public class MenzobaraRiverScene(
     Camera camera,
     KeyboardInfo keyboardInfo,
     AssetManager assetManager,
-    UIRoot uiFactory) : Scene
+    UIRoot uiFactory,
+    TextureAtlasLoader atlasLoader) : Scene
 {
     private readonly AudioController _audio = audioController;
     private readonly SpriteBatch _spriteBatch = spriteBatch;
@@ -42,12 +44,11 @@ public class MenzobaraRiverScene(
     private readonly KeyboardInfo _keyboardInfo = keyboardInfo;
     private readonly AssetManager _assetManager = assetManager;
     private readonly UIRoot _uiRoot = uiFactory;
+    private readonly TextureAtlasLoader _atlasLoader = atlasLoader;
     private readonly FrameCounter _frameCounter = new();
     private TileGrid _grid;
     private SpriteFont _font;
-    private TileInfo _activeTileInfo;
 
-    private static readonly TimeSpan MoveDelay = TimeSpan.FromMilliseconds(100);
     private bool _showGrid = false;
     private AttackContainer _attackContainer;
     private Effect _darkenEffect;
@@ -72,19 +73,10 @@ public class MenzobaraRiverScene(
         LdtkLayerInstance layerInstance = level.GetTileLayer();
         string atlasName = Path.GetFileNameWithoutExtension(layerInstance.TilesetRelPath);
         Texture2D atlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", atlasName));
-        TextureRegion cursorFrameOne = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(x: 48, y: 16, width: 16, height: 16)
-        };
-        TextureRegion cursorFrameTwo = new ()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(x: 48, y: 32, width: 16, height: 16)
-        };
+        TextureAtlas placeholderAtlas = _atlasLoader.Load<MenzobaraRiverScene>("Images", "placeholder-atlas-definition.json");
         Animation cursorAnimation = new()
         {
-            Frames = [cursorFrameOne, cursorFrameTwo],
+            Frames = [placeholderAtlas.GetRegion("cursor-1"), placeholderAtlas.GetRegion("cursor-2")],
             Delay = TimeSpan.FromMilliseconds(500)
         };
         AnimatedSprite cursorSprite = new()
@@ -94,78 +86,48 @@ public class MenzobaraRiverScene(
             LayerDepth = LayerDepths.MovementArrow
         };
         Cursor cursor = new (camera, cursorSprite);
-        TextureRegion gridOverlayTexture = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(x: 0, y: 32, width: 16, height: 16)
-        };   
-
-        TextureRegion movementOverlayTexture = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(48, 48, 16, 16)
-        };
-        TextureRegion attackOverlayTexture = new ()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(32, 48, 16, 16)
-        };
-
+        TextureRegion attackOverlayTexture = placeholderAtlas.GetRegion("attackOverlay");
         MoveOverlay moveOverlay = new ()
         {
-            MovementTexture = movementOverlayTexture,
+            MovementTexture = placeholderAtlas.GetRegion("movementOverlay"),
             AttackTexture = attackOverlayTexture
         };
 
-        TextureRegion arrowHead = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(x: 32, y: 0, width: 16, height: 16)
-        };
-        TextureRegion arrowBody = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(x: 48, y: 0, width: 16, height: 16)
-        };
-        TextureRegion arrowBend = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(x: 32, y: 32, width: 16, height: 16)
-        };
-        TextureRegion arrowStart = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(x: 32, y: 16, width: 16, height: 16)
-        };
         MovementArrow movementArrow = new(cursor, moveOverlay)
         {
-            HeadTexture = arrowHead,
-            StraightTexture = arrowBody,
-            BendTexture = arrowBend,
-            StartTexture = arrowStart
+            HeadTexture = placeholderAtlas.GetRegion("arrowHead"),
+            StraightTexture = placeholderAtlas.GetRegion("arrowBody"),
+            BendTexture = placeholderAtlas.GetRegion("arrowBend"),
+            StartTexture = placeholderAtlas.GetRegion("arrowStart")
         };
         UIRoot
             .RootToCamera(movementArrow)
             .SetLayerDepth(LayerDepths.MovementArrow)
             .SetIsVisible(false);
 
+        Texture2D fighterAttackAtlasTexture = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "gigough-attack-animation"));
+        TextureAtlas fighterAttackAtlas = new(fighterAttackAtlasTexture);
+        List<TextureRegion> frames = [];
+        for (int i = 0; i < 12; i++)
+        {
+            frames.Add(fighterAttackAtlas.AddRegion($"frame{i}", new Rectangle(128 * i, 0, 128, 128)));
+        }
+        Animation fighterAttackAnimation = new()
+        {
+            Frames = frames,
+            Loop = false
+        };
         LdtkLayerInstance entityLayer = level.GetEntityLayer();
-        TextureRegion goblinTexture = new()
+        Animation gobboAnimation = new() { Frames = [placeholderAtlas.GetRegion("goblin")] };
+        EntityAnimations goblinAnimations = new(gobboAnimation, gobboAnimation, gobboAnimation, gobboAnimation, gobboAnimation, fighterAttackAnimation);
+        Animation fighterAnim = new() { Frames = [placeholderAtlas.GetRegion("fighter")] };
+        EntityAnimations fighterAnimations = new(fighterAnim, fighterAnim, fighterAnim, fighterAnim, fighterAnim, fighterAttackAnimation);
+        Dictionary<string, EntityAnimations> identifierToAnimations = new()
         {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(0, 48, 16, 16)
+            { Goblin.LdtkIdentifier, goblinAnimations },
+            { Fighter.LdtkIdentifier, fighterAnimations }
         };
-        TextureRegion fighterTexture = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(16, 48, 16, 16)
-        };
-        Dictionary<string, TextureRegion> identifierToTexture = new()
-        {
-            { Goblin.LdtkIdentifier, goblinTexture },
-            { Fighter.LdtkIdentifier, fighterTexture }
-        };
-        Dictionary<Point, IEntity> entities = EntityFactory.CreateLayerEntities(entityLayer, identifierToTexture);
+        Dictionary<Point, IEntity> entities = EntityFactory.CreateLayerEntities(entityLayer, identifierToAnimations);
         GridState.Instance.Entities = entities;
 
         Sprite attackOverlaySprite = new ()
@@ -182,18 +144,10 @@ public class MenzobaraRiverScene(
             .RootToCamera(attackOverlay)
             .SetIsVisible(false);
 
-        TextureRegion menuTexture = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(64, 0, 32, 48)
-        };
+        TextureRegion menuTexture = placeholderAtlas.GetRegion("contextMenu");
         int menuScalar = 4;
 
-        TextureRegion movePreviewTexture = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(64, 48, 64, 48)
-        };
+        TextureRegion movePreviewTexture = placeholderAtlas.GetRegion("movePreview");
 
         MovePreview movePreview = new()
         {
@@ -209,15 +163,10 @@ public class MenzobaraRiverScene(
             .PadHorizontal(4, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
             .PadVertical(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
             .SetIsVisible(false);
-        
-        TextureRegion focusTexture = new()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(96, 0, 28, 1)
-        };
+
         ContextMenu contextMenu = new()
         {
-            FocusTexture = focusTexture,
+            FocusTexture = placeholderAtlas.GetRegion("focus"),
             KeyboardInfo = _keyboardInfo,
             Font = _font,
             Cursor = cursor
@@ -232,15 +181,9 @@ public class MenzobaraRiverScene(
             .PadVertical(25, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
             .SetIsVisible(false);
 
-        TextureRegion enemyMoveOverlayTexture = new ()
-        {
-            Texture = atlas,
-            SourceRectangle = new Rectangle(48, 64, 16, 16)
-        };
-
         Dictionary<string, TileInfo> enumNameToTileInfo = new()
         {
-            { "Forest", new TileInfo("Forest") { DodgeModifier = 20, ArmorModifier = 1 } },
+            { "Forest", new TileInfo("Forest") { DodgeModifier = 20, DefenseModifier = 1 } },
             { "River", new TileInfo("River") { CanWalk = false } },
             { "Bridge", new TileInfo("Bridge") },
             { "Grass", new TileInfo("Grass") }
@@ -249,12 +192,12 @@ public class MenzobaraRiverScene(
         GridTileList tiles = GridTileList.FromLevel(ldtkProjectFile, levelName, atlas, enumNameToTileInfo);
         GridState.Instance.Tiles = tiles;
         _grid = new TileGrid(
-            gridOverlayTexture,
+            placeholderAtlas.GetRegion("gridOverlay"),
             scalar: 4,
             cursor,
             movementArrow,
             moveOverlay,
-            enemyMoveOverlayTexture,
+            placeholderAtlas.GetRegion("enemyMoveOverlay"),
             debugFont: null);
         // don't attach Grid to the root, we want to control how it's drawn
         UIRoot.Focus(_grid);
@@ -268,109 +211,25 @@ public class MenzobaraRiverScene(
             Height = level.LayerHeight * _grid.Scalar
         };
 
-        Texture2D attackSceneAtlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "attack-scene"));
-        TextureRegion enemyNameBannerTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(0, 0, 48, 16)
-        };
-        TextureRegion friendlyNameBannerTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(48, 0, 48, 16)
-        };
-        TextureRegion healthBarActiveTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(0, 96, 3, 9)
-        };
-        TextureRegion healthBarInactiveTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(3, 96, 3, 9)
-        };
-        TextureRegion enemyHealthBannerTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(0, 64, 96, 16)
-        };
-        TextureRegion friendlyHealthBannerTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(0, 80, 96, 16)
-        };
-        TextureRegion enemyAttackBannerTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(0, 16, 48, 16)
-        };
-        TextureRegion friendlyAttackBannerTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(48, 16, 48, 16)
-        };
-        TextureRegion enemyStatBoxTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(0, 32, 25, 25)
-        };
-        TextureRegion friendlyStatBoxTexture = new()
-        {
-            Texture = attackSceneAtlas,
-            SourceRectangle = new Rectangle(71, 32, 25, 25)
-        };
-        Texture2D attackSceneTerrainAtlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "attack-scene-terrain"));
-        TextureRegion forestTerrainTexture = new()
-        {
-            Texture = attackSceneTerrainAtlas,
-            SourceRectangle = new Rectangle(0, 0, 32, 19)
-        };
-        TextureRegion grassTerrainTexture = new()
-        {
-            Texture = attackSceneTerrainAtlas,
-            SourceRectangle = new Rectangle(32, 0, 32, 19)
-        };
+        TextureAtlas attackSceneTerrainAtlas = _atlasLoader.Load<MenzobaraRiverScene>("Images", "attack-scene-terrain-definition.json");
         Dictionary<string, TextureRegion> terrainTypeToTexture = new()
         {
-            { "Forest", forestTerrainTexture },
-            { "Grass", grassTerrainTexture }
+            { "Forest", attackSceneTerrainAtlas.GetRegion("forest") },
+            { "Grass", attackSceneTerrainAtlas.GetRegion("grass") }
         };
-
-        Texture2D fighterAttackAtlasTexture = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "gigough-attack-animation"));
-        TextureAtlas fighterAttackAtlas = new(fighterAttackAtlasTexture);
-        Animation fighterAttackAnimation = new()
-        {
-            Frames = [
-                fighterAttackAtlas.AddRegion("frame1", new Rectangle(0, 0, 64, 64)),
-                fighterAttackAtlas.AddRegion("frame2", new Rectangle(64, 0, 64, 64)),
-                fighterAttackAtlas.AddRegion("frame3", new Rectangle(128, 0, 64, 64)),
-                fighterAttackAtlas.AddRegion("frame4", new Rectangle(192, 0, 64, 64)),
-                fighterAttackAtlas.AddRegion("frame5", new Rectangle(256, 0, 64, 64)),
-                fighterAttackAtlas.AddRegion("frame6", new Rectangle(320, 0, 64, 64)),
-                fighterAttackAtlas.AddRegion("frame7", new Rectangle(384, 0, 64, 64))
-            ],
-            Loop = false
-        };
-        Dictionary<string, Animation> entityDisplayNameToAnimation = new()
-        {
-            { "Gobbo", fighterAttackAnimation },
-            { "Gigough Chad", fighterAttackAnimation }
-        };
+        TextureAtlas attackSceneAtlas = _atlasLoader.Load<MenzobaraRiverScene>("Images", "attack-scene-definition.json");
         AttackContainer attackContainer = new ();
         attackContainer
-            //.SetEnemy(GridState.Instance.Entities.ElementAt(0).Value)
-            //.SetFriendly(GridState.Instance.Entities.ElementAt(1).Value)
-            .SetEnemyNameBannerTexture(enemyNameBannerTexture)
-            .SetFriendlyNameBannerTexture(friendlyNameBannerTexture)
-            .SetHealthBarTextures(healthBarActiveTexture, healthBarInactiveTexture)
-            .SetEnemyHealthBannerTexture(enemyHealthBannerTexture)
-            .SetFriendlyHealthBannerTexture(friendlyHealthBannerTexture)
-            .SetEnemyAttackBannerTexture(enemyAttackBannerTexture)
-            .SetFriendlyAttackBannerTexture(friendlyAttackBannerTexture)
-            .SetEnemyStatBoxTexture(enemyStatBoxTexture)
-            .SetFriendlyStatBoxTexture(friendlyStatBoxTexture)
+            .SetEnemyNameBannerTexture(attackSceneAtlas.GetRegion("enemyNameBanner"))
+            .SetFriendlyNameBannerTexture(attackSceneAtlas.GetRegion("friendlyNameBanner"))
+            .SetHealthBarTextures(attackSceneAtlas.GetRegion("healthBarActive"), attackSceneAtlas.GetRegion("healthBarInactive"))
+            .SetEnemyHealthBannerTexture(attackSceneAtlas.GetRegion("enemyHealthBanner"))
+            .SetFriendlyHealthBannerTexture(attackSceneAtlas.GetRegion("friendlyHealthBanner"))
+            .SetEnemyAttackBannerTexture(attackSceneAtlas.GetRegion("enemyAttackBanner"))
+            .SetFriendlyAttackBannerTexture(attackSceneAtlas.GetRegion("friendlyAttackBanner"))
+            .SetEnemyStatBoxTexture(attackSceneAtlas.GetRegion("enemyStatBox"))
+            .SetFriendlyStatBoxTexture(attackSceneAtlas.GetRegion("friendlyStatBox"))
             .SetTerrainTypeToTexture(terrainTypeToTexture)
-            .SetEntityDisplayNameToAnimation(entityDisplayNameToAnimation)
             .SetFont(_font)
             .SetIsVisible(false);
         UIRoot.RootToScreen(attackContainer);
@@ -383,6 +242,29 @@ public class MenzobaraRiverScene(
         Router.RegisterRoute(DefaultRoutes.MovementAnimation, movementAnimation);
 
         _darkenEffect = _assetManager.Load<MenzobaraRiverScene, Effect>(Path.Combine("Effects", "Darken"));
+
+        TextureRegion mapInfoTexture = placeholderAtlas.GetRegion("mapInfo");
+        TerrainInfo terrainInfo = new();
+        terrainInfo
+            .SetFont(_font)
+            .SetTextureNoDefaults(mapInfoTexture)
+            .PadHorizontal(16, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromLeft)
+            .PadVertical(16, UIUnit.Pixels, UIVerticalPaddingOrientation.FromTop)
+            .SetWidth(64 * 4, UIUnit.Pixels)
+            .SetHeight(16 * 4, UIUnit.Pixels)
+            .SetOpacity(0.85f);
+        UIRoot.RootToScreen(terrainInfo);
+
+        CharacterInfo characterInfo = new();
+        characterInfo
+            .SetFont(_font)
+            .SetTextureNoDefaults(mapInfoTexture)
+            .PadHorizontal(16, UIUnit.Pixels, UIHorizontalPaddingOrientation.FromRight)
+            .PadVertical(16, UIUnit.Pixels, UIVerticalPaddingOrientation.FromTop)
+            .SetWidth(64 * 4, UIUnit.Pixels)
+            .SetHeight(16 * 4, UIUnit.Pixels)
+            .SetOpacity(0.85f);
+        UIRoot.RootToScreen(characterInfo);
 
         stopwatch.Stop();
 
@@ -399,9 +281,7 @@ public class MenzobaraRiverScene(
     {
         if (_keyboardInfo.WasKeyJustPressed(Keys.H))
             _sceneManager.ChangeScene<OtherScene>();
-        
-        _activeTileInfo = GridState.Instance.ActiveTile?.TileInfo ?? new(string.Empty);
-        
+                
         // if (_keyboardInfo.WasKeyJustPressed(Keys.C))
         //     _camera.Center();
         // if (_keyboardInfo.WasKeyJustPressed(Keys.OemPlus) ||
@@ -432,7 +312,6 @@ public class MenzobaraRiverScene(
         _spriteBatch.End();
 
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.BackToFront);
-        //_spriteBatch.DrawString(_font, _activeTileInfo.ToString(_grid.Cursor.Position), Vector2.Zero, Color.White);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _frameCounter.Update(deltaTime);
         string fps = string.Format("FPS: {0}", (int)_frameCounter.AverageFramesPerSecond);

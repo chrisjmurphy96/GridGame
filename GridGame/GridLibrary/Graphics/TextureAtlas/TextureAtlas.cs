@@ -1,9 +1,8 @@
-﻿using GridLibrary.Graphics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
-namespace GridLibrary.UI;
+namespace GridLibrary.Graphics.TextureAtlas;
 
 public class TextureAtlas
 {
