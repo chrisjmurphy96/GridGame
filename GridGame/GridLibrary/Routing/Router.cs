@@ -12,7 +12,7 @@ namespace GridLibrary.Routing;
 public static class Router
 {
     private static readonly Dictionary<string, IRouteableElement> _routeNameToElement = [];
-    private static IRouteableElement? _currentRoutElement;
+    private static IRouteableElement? _currentRouteElement;
     public static string CurrentRoute { get; private set; } = string.Empty;
     public static void RegisterRoute(string routeName, IRouteableElement element) => _routeNameToElement.Add(routeName, element);
     public static void RouteTo(string routeName)
@@ -22,12 +22,12 @@ public static class Router
 
         if (_routeNameToElement.TryGetValue(routeName, out IRouteableElement? element) && element is not null)
         {
-            _currentRoutElement?.SetIsVisible(false);
+            _currentRouteElement?.SetIsVisible(false);
 
             element.Initialize();
             element.SetIsVisible(true);
             UIRoot.Focus(element);
-            _currentRoutElement = element;
+            _currentRouteElement = element;
             CurrentRoute = routeName;
         }
         else
