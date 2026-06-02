@@ -7,5 +7,6 @@ internal class TextureAtlasFields
 {
     public required string Directory { get; set; }
     public required string FileName { get; set; }
-    public required Dictionary<string, Rectangle> RegionNameToSourceRectangle { get; set; }
+    public Dictionary<string, Rectangle> RegionNameToSourceRectangle { get; set; } = [];
+    public Dictionary<string, AnimationData> AnimationNameToAnimationData { get; set; } = [];
 }

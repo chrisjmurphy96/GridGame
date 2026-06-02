@@ -74,14 +74,9 @@ public class MenzobaraRiverScene(
         string atlasName = Path.GetFileNameWithoutExtension(layerInstance.TilesetRelPath);
         Texture2D atlas = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", atlasName));
         TextureAtlas placeholderAtlas = _atlasLoader.Load<MenzobaraRiverScene>("Images", "placeholder-atlas-definition.json");
-        Animation cursorAnimation = new()
-        {
-            Frames = [placeholderAtlas.GetRegion("cursor-1"), placeholderAtlas.GetRegion("cursor-2")],
-            Delay = TimeSpan.FromMilliseconds(500)
-        };
         AnimatedSprite cursorSprite = new()
         {
-            Animation = cursorAnimation,
+            Animation = placeholderAtlas.GetAnimation("cursor"),
             Scale = Vector2.One * 4,
             LayerDepth = LayerDepths.MovementArrow
         };

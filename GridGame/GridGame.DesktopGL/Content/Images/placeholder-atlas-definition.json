@@ -2,18 +2,6 @@
   "directory": "Images",
   "fileName": "placeholder-atlas",
   "regionNameToSourceRectangle": {
-    "cursor-1": {
-      "x": 48,
-      "y": 16,
-      "width": 16,
-      "height": 16
-    },
-    "cursor-2": {
-      "x": 48,
-      "y": 32,
-      "width": 16,
-      "height": 16
-    },
     "gridOverlay": {
       "x": 0,
       "y": 32,
@@ -97,6 +85,23 @@
       "y": 96,
       "width": 64,
       "height": 16
+    }
+  },
+  "animationNameToAnimationData": {
+    "cursor": {
+      "delayInMilliseconds": 500,
+      "width": 16,
+      "height": 16,
+      "sources": [
+        {
+          "x": 48,
+          "y": 16
+        },
+        {
+          "x": 48,
+          "y": 32
+        }
+      ]
     }
   }
 }

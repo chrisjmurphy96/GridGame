@@ -34,6 +34,10 @@ public class TextureAtlasLoader
         {
             textureAtlas.AddRegion(regionName, source);
         }
+        foreach((string animationName, AnimationData animationData) in textureAtlasFields.AnimationNameToAnimationData)
+        {
+            textureAtlas.AddAnimation(animationName, animationData.DelayInMilliseconds, animationData.Width, animationData.Height, animationData.Sources);
+        }
         return textureAtlas;
     }
 }
