@@ -10,6 +10,9 @@ public class AnimatedElement : UIElement
     private Animation? _animation;
     private bool _started = false;
     private Action? _onAnimationEnd;
+    private Action? _onFrameReached;
+    private bool _onFrameTriggered = false;
+    private int _onFrameIndex;
 
     public AnimatedElement SetAnimation(Animation animation)
     {
@@ -49,7 +52,9 @@ public class AnimatedElement : UIElement
 
     public AnimatedElement SetFrameTrigger(int frameIndex, Action onFrameReached)
     {
-        // TODO: allow callbacks to trigger on a specific frame
+        _onFrameReached = onFrameReached;
+        _onFrameTriggered = false;
+        _onFrameIndex = frameIndex;
         return this;
     }
 
@@ -61,6 +66,13 @@ public class AnimatedElement : UIElement
         if (_animation is null)
             return;
 
+        if (_onFrameReached is not null &&
+            !_onFrameTriggered &&
+            _animation.CurrentFrameIndex == _onFrameIndex)
+        {
+            _onFrameTriggered = true;
+            _onFrameReached();
+        }
         _animation.Update(gameTime);
         SetTextureNoDefaults(_animation.CurrentFrame);
         if (_animation.ReachedLoopEnd && _onAnimationEnd is not null)

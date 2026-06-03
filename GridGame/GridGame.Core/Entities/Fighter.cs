@@ -18,6 +18,7 @@ public class Fighter : IEntity
     public Animation AttackAnimation => _entityAnimations.Attack;
     public EntityHealth Health { get; } = new EntityHealth(40);
     public int Defense => 5;
+    public int DodgeChance => 0;
     public int MovementRange => 6;
     public bool IsFriendly => true;
     public bool IsPlayerControllable => true;
@@ -34,7 +35,8 @@ public class Fighter : IEntity
             Name = "Melee Attack",
             Damage = 15,
             HitChance = 80,
-            CritChance = 5
+            CritChance = 5,
+            ContactFrame = 5
         };
         Moves = [SelectedMove];
     }

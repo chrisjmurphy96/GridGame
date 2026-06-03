@@ -18,6 +18,7 @@ public class Goblin : IEntity
     public Animation AttackAnimation => _entityAnimations.Attack;
     public EntityHealth Health { get; } = new EntityHealth(16);
     public int Defense { get; } = 3;
+    public int DodgeChance { get; } = 0;
     public int MovementRange => 5;
     public bool IsFriendly => false;
     public bool IsPlayerControllable => false;

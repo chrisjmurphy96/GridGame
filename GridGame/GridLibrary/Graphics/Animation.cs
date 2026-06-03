@@ -27,10 +27,10 @@ public class Animation
     /// </summary>
     public static TimeSpan DefaultDelay => TimeSpan.FromMilliseconds(100);
 
-    private int _currentFrameIndex = 0;
+    public int CurrentFrameIndex { get; private set; } = 0;
     private TimeSpan _elapsed = TimeSpan.Zero;
 
-    public TextureRegion CurrentFrame => Frames[_currentFrameIndex];
+    public TextureRegion CurrentFrame => Frames[CurrentFrameIndex];
 
     public static Animation FromFrameData(Texture2D atlas, FrameData frameData, int frameWidth, int frameHeight)
     {
@@ -72,14 +72,14 @@ public class Animation
         if (_elapsed >= Delay)
         {
             _elapsed -= Delay;
-            _currentFrameIndex++;
+            CurrentFrameIndex++;
 
-            if (_currentFrameIndex >= Frames.Count)
+            if (CurrentFrameIndex >= Frames.Count)
             {
                 if (Loop)
-                    _currentFrameIndex = 0;
+                    CurrentFrameIndex = 0;
                 else
-                    _currentFrameIndex = Frames.Count - 1;
+                    CurrentFrameIndex = Frames.Count - 1;
                 ReachedLoopEnd = true;
             }
             else
@@ -89,7 +89,7 @@ public class Animation
 
     public void Reset()
     {
-        _currentFrameIndex = 0;
+        CurrentFrameIndex = 0;
         ReachedLoopEnd = false;
     }
 }

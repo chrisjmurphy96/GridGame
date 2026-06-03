@@ -142,25 +142,25 @@ public class AttackContainer : UIElement, IRouteableElement
             throw new ArgumentException($"No friendly fire! IsFriendly: {attacker.IsFriendly}");
         if (attacker.IsFriendly)
         {
-            SetFriendly(attacker);
-            SetEnemy(attacked);
+            Point friendlyPosition = GridState.Instance.PotentialMove ?? throw new ArgumentException("No potential move found");
+            GridTile friendlyTile = GridState.Instance.Tiles[friendlyPosition];
+            GridTile enemyTile = GridState.Instance.Tiles[cursorPosition];
+            SetFriendly(attacker, attacked, enemyTile);
+            SetEnemy(attacked, attacker, friendlyTile);
             SetAnimationChain(_friendlyAnimation, _enemyAnimation);
 
-            GridTile enemyTile = GridState.Instance.Tiles[cursorPosition];
             if (!_terrainTypeToTexture.TryGetValue(enemyTile.TileInfo.TileType, out TextureRegion? enemyTerrainTexture))
                 throw new ArgumentException("No terrain mapped for enemy position");
             SetEnemyTerrain(enemyTerrainTexture);
-            Point friendlyPosition = GridState.Instance.PotentialMove ?? throw new ArgumentException("No potential move found");
-            GridTile friendlyTile = GridState.Instance.Tiles[friendlyPosition];
             if (!_terrainTypeToTexture.TryGetValue(friendlyTile.TileInfo.TileType, out TextureRegion? friendlyTerrainTexture))
                 throw new ArgumentException("No terrain mapped for friendly position");
             SetFriendlyTerrain(friendlyTerrainTexture);
         }
         else
         {
-            SetFriendly(attacked);
-            SetEnemy(attacker);
-            SetAnimationChain(_enemyAnimation, _friendlyAnimation);
+            //SetFriendly(attacked);
+            //SetEnemy(attacker);
+            //SetAnimationChain(_enemyAnimation, _friendlyAnimation);
             
             // TODO: Need to set terrain, but state checks might be different
         }
@@ -176,23 +176,37 @@ public class AttackContainer : UIElement, IRouteableElement
         }).Start();
     }
 
-    public AttackContainer SetEnemy(IEntity entity)
+    public AttackContainer SetEnemy(IEntity enemy, IEntity friendly, GridTile friendlyTile)
     {
-        _enemyNameBanner.SetText(entity.DisplayName);
-        _enemyHealthBar.SetEntity(entity);
-        _enemyAttackBanner.SetMove(entity.SelectedMove);
-        _enemyStatBox.SetMove(entity.SelectedMove);
-        _enemyAnimation.SetAnimation(entity.AttackAnimation);
+        _enemyNameBanner.SetText(enemy.DisplayName);
+        _enemyHealthBar.SetEntity(enemy);
+        _enemyAttackBanner.SetMove(enemy.SelectedMove);
+        _enemyStatBox.SetMove(enemy.SelectedMove);
+        _enemyAnimation
+            .SetAnimation(enemy.AttackAnimation)
+            .SetFrameTrigger(enemy.SelectedMove.ContactFrame, () =>
+            {
+                // TODO: lots of logic around crit/dodge animations, all that jazz
+                AttackResult attackResult = EntityAttackSimulator.Simulate(enemy, friendly, friendlyTile.TileInfo);
+                friendly.Health.Subtract(attackResult.Damage);
+            });
         return this;
     }
 
-    public AttackContainer SetFriendly(IEntity entity)
+    public AttackContainer SetFriendly(IEntity friendly, IEntity enemy, GridTile enemyTile)
     {
-        _friendlyNameBanner.SetText(entity.DisplayName);
-        _friendlyHealthBar.SetEntity(entity);
-        _friendlyAttackBanner.SetMove(entity.SelectedMove);
-        _friendlyStatBox.SetMove(entity.SelectedMove);
-        _friendlyAnimation.SetAnimation(entity.AttackAnimation);
+        _friendlyNameBanner.SetText(friendly.DisplayName);
+        _friendlyHealthBar.SetEntity(friendly);
+        _friendlyAttackBanner.SetMove(friendly.SelectedMove);
+        _friendlyStatBox.SetMove(friendly.SelectedMove);
+        _friendlyAnimation
+            .SetAnimation(friendly.AttackAnimation)
+            .SetFrameTrigger(friendly.SelectedMove.ContactFrame, () =>
+            {
+                // TODO: lots of logic around crit/dodge animations, all that jazz
+                AttackResult attackResult = EntityAttackSimulator.Simulate(friendly, enemy, enemyTile.TileInfo);
+                enemy.Health.Subtract(attackResult.Damage);
+            });
         return this;
     }
 

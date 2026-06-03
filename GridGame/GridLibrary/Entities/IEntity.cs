@@ -12,6 +12,7 @@ public interface IEntity
     public Animation AttackAnimation { get; }
     public EntityHealth Health { get; }
     public int Defense { get; }
+    public int DodgeChance { get; }
     public int MovementRange { get; }
     public bool IsFriendly { get; }
     public bool IsPlayerControllable { get; }
