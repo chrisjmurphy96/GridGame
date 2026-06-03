@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace GridLibrary.UI.AttackScene;
 
@@ -188,6 +189,7 @@ public class AttackContainer : UIElement, IRouteableElement
             {
                 // TODO: lots of logic around crit/dodge animations, all that jazz
                 AttackResult attackResult = EntityAttackSimulator.Simulate(enemy, friendly, friendlyTile.TileInfo);
+                Debug.WriteLine(attackResult);
                 friendly.Health.Subtract(attackResult.Damage);
             });
         return this;
@@ -205,6 +207,7 @@ public class AttackContainer : UIElement, IRouteableElement
             {
                 // TODO: lots of logic around crit/dodge animations, all that jazz
                 AttackResult attackResult = EntityAttackSimulator.Simulate(friendly, enemy, enemyTile.TileInfo);
+                Debug.WriteLine(attackResult);
                 enemy.Health.Subtract(attackResult.Damage);
             });
         return this;

@@ -11,4 +11,12 @@ public struct AttackResult
         Crit = crit;
         Damage = damage;
     }
+
+    public override readonly string ToString()
+    {
+        return
+@$"{nameof(Hit)}: {Hit}
+{nameof(Crit)}: {Crit}
+{nameof(Damage)}: {Damage}";
+    }
 }

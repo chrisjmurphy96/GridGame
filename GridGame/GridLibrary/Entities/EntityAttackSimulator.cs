@@ -20,15 +20,15 @@ public static class EntityAttackSimulator
         AttackResult attackResult = new (false, false, 0);
         // 1. Check if we hit.
         int actualHitChance = attacker.SelectedMove.HitChance - attacked.DodgeChance - attackedTileInfo.DodgeModifier;
-        int hitChanceValue = _random.Next() % 100;
-        if (hitChanceValue <= actualHitChance)
+        int hitChanceValue = GetChance();
+        if (actualHitChance >= hitChanceValue)
         {
             attackResult.Hit = true;
         }
 
         // 2. Check if we crit.
-        int critChanceValue = _random.Next() % 100;
-        if (critChanceValue <= attacker.SelectedMove.CritChance)
+        int critChanceValue = GetChance();
+        if (attacker.SelectedMove.CritChance >= critChanceValue)
         {
             attackResult.Crit = true;
         }
@@ -36,15 +36,25 @@ public static class EntityAttackSimulator
         // 3. Calculate resulting damage.
         if (attackResult.Hit)
         {
+            int damageAfterArmor = attacker.SelectedMove.Damage - attacked.Defense;
             if (attackResult.Crit)
-                attackResult.Damage = (int)(attacker.SelectedMove.Damage * _critMod);
+                attackResult.Damage = (int)(damageAfterArmor * _critMod);
             else
-                attackResult.Damage = attacker.SelectedMove.Damage;
-            attackResult.Damage -= attacked.Defense;
+                attackResult.Damage = damageAfterArmor;
             if (attackResult.Damage < 0)
                 attackResult.Damage = 0;
         }
 
         return attackResult;
+    }
+
+    /// <summary>
+    /// Returns a range of 1-100. This is to make sure a
+    /// crit chance of 0 never results in a crit, and a crit chance of 100 always does.
+    /// </summary>
+    /// <returns></returns>
+    private static int GetChance()
+    {
+        return (_random.Next() % 100) + 1;
     }
 }
