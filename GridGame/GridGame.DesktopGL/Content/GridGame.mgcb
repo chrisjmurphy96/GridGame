@@ -71,6 +71,36 @@
 /processorParam:TextureFormat=Color
 /build:Images/gigough-attack-animation.png
 
+#begin Images/gigough-attack-v2-definition.json
+/copy:Images/gigough-attack-v2-definition.json
+
+#begin Images/gigough-attack-v2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/gigough-attack-v2.png
+
+#begin Images/goblin-attack-placeholder-definition.json
+/copy:Images/goblin-attack-placeholder-definition.json
+
+#begin Images/goblin-attack-placeholder.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/goblin-attack-placeholder.png
+
 #begin Images/placeholder-atlas-definition.json
 /copy:Images/placeholder-atlas-definition.json
 

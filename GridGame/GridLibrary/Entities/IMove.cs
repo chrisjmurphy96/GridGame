@@ -11,5 +11,8 @@ public interface IMove
     /// <summary>
     /// Frame count when damage should be applied.
     /// </summary>
-    public int ContactFrame { get; }
+    public int RegularContactFrame { get; }
+    public int CritContactFrame { get; }
+    public string RegularAnimationKey { get; }
+    public string CritAnimationKey { get; }
 }

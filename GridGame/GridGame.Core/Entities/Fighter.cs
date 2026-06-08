@@ -12,10 +12,10 @@ public class Fighter : IEntity
     
     public string DisplayName => "Gigough Chad";
 
-    private readonly EntityAnimations _entityAnimations;
+    private readonly EntityMapAnimations _entityAnimations;
 
     public TextureRegion ActiveTexture => _entityAnimations.CurrentFrame;
-    public Animation AttackAnimation => _entityAnimations.Attack;
+    public string DodgeAnimationKey { get; set; }
     public EntityHealth Health { get; } = new EntityHealth(40);
     public int Defense => 5;
     public int DodgeChance => 0;
@@ -24,24 +24,15 @@ public class Fighter : IEntity
     public bool IsPlayerControllable => true;
     public bool IsVisible { get; set; } = true;
     public IMove SelectedMove { get; set; }
-    public List<IMove> Moves { get; }
+    public List<IMove> Moves { get; } = [];
     public bool HasMoved { get; set; }
 
-    public Fighter(EntityAnimations entityAnimations)
+    public Fighter(EntityMapAnimations entityAnimations)
     {
         _entityAnimations = entityAnimations;
-        SelectedMove = new MeleeAttack
-        {
-            Name = "Melee Attack",
-            Damage = 15,
-            HitChance = 80,
-            CritChance = 5,
-            ContactFrame = 5
-        };
-        Moves = [SelectedMove];
     }
 
-    public void SetAnimation(EntityAnimationType entityAnimationType)
+    public void SetAnimation(EntityMapAnimationType entityAnimationType)
     {
         _entityAnimations.SetAnimation(entityAnimationType);
     }

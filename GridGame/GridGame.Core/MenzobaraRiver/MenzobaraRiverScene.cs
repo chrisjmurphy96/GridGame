@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using GridGame.Core.AttackMoves;
 using GridGame.Core.Entities;
 using GridLibrary;
 using GridLibrary.Entities;
@@ -100,24 +101,27 @@ public class MenzobaraRiverScene(
             .SetLayerDepth(LayerDepths.MovementArrow)
             .SetIsVisible(false);
 
-        Texture2D fighterAttackAtlasTexture = _assetManager.Load<MenzobaraRiverScene, Texture2D>(Path.Combine("Images", "gigough-attack-animation"));
-        TextureAtlas fighterAttackAtlas = new(fighterAttackAtlasTexture);
-        List<TextureRegion> frames = [];
-        for (int i = 0; i < 12; i++)
-        {
-            frames.Add(fighterAttackAtlas.AddRegion($"frame{i}", new Rectangle(128 * i, 0, 128, 128)));
-        }
-        Animation fighterAttackAnimation = new()
-        {
-            Frames = frames,
-            Loop = false
-        };
+        TextureAtlas goblinAttackAnimations = _atlasLoader.Load<MenzobaraRiverScene>("Images", "goblin-attack-placeholder-definition.json");
+        Animation goblinAttackAnimation = goblinAttackAnimations.GetAnimation("regularAttack");
+        Animation goblinCritAnimation = goblinAttackAnimations.GetAnimation("critAttack");
+        Animation goblinDodgeAnimation = goblinAttackAnimations.GetAnimation("dodge");
+        AnimationPool.Add("goblinRegularAttack", goblinAttackAnimation);
+        AnimationPool.Add("goblinCritAttack", goblinCritAnimation);
+        AnimationPool.Add("goblinDodge", goblinDodgeAnimation);
+
+        TextureAtlas gigoughAttackAnimations = _atlasLoader.Load<MenzobaraRiverScene>("Images", "gigough-attack-v2-definition.json");
+        Animation gigoughAttackAnimation = gigoughAttackAnimations.GetAnimation("regularAttack");
+        Animation gigoughCritAnimation = gigoughAttackAnimations.GetAnimation("critAttack");
+        Animation gigoughDodgeAnimation = gigoughAttackAnimations.GetAnimation("dodge");
+        AnimationPool.Add("gigoughRegularAttack", gigoughAttackAnimation);
+        AnimationPool.Add("gigoughCritAttack", gigoughCritAnimation);
+        AnimationPool.Add("gigoughDodge", gigoughDodgeAnimation);
         LdtkLayerInstance entityLayer = level.GetEntityLayer();
         Animation gobboAnimation = new() { Frames = [placeholderAtlas.GetRegion("goblin")] };
-        EntityAnimations goblinAnimations = new(gobboAnimation, gobboAnimation, gobboAnimation, gobboAnimation, gobboAnimation, fighterAttackAnimation);
+        EntityMapAnimations goblinAnimations = new(gobboAnimation, gobboAnimation, gobboAnimation, gobboAnimation, gobboAnimation);
         Animation fighterAnim = new() { Frames = [placeholderAtlas.GetRegion("fighter")] };
-        EntityAnimations fighterAnimations = new(fighterAnim, fighterAnim, fighterAnim, fighterAnim, fighterAnim, fighterAttackAnimation);
-        Dictionary<string, EntityAnimations> identifierToAnimations = new()
+        EntityMapAnimations fighterAnimations = new(fighterAnim, fighterAnim, fighterAnim, fighterAnim, fighterAnim);
+        Dictionary<string, EntityMapAnimations> identifierToAnimations = new()
         {
             { Goblin.LdtkIdentifier, goblinAnimations },
             { Fighter.LdtkIdentifier, fighterAnimations }
@@ -194,7 +198,8 @@ public class MenzobaraRiverScene(
             moveOverlay,
             placeholderAtlas.GetRegion("enemyMoveOverlay"),
             debugFont: null);
-        // don't attach Grid to the root, we want to control how it's drawn
+        _grid.SetLayerDepth(LayerDepths.Tiles);
+        UIRoot.RootToCamera(_grid);
         UIRoot.Focus(_grid);
         Router.AddDefaultRoutes(_grid, movementArrow, contextMenu, movePreview);
         
@@ -289,7 +294,6 @@ public class MenzobaraRiverScene(
         {
             ToggleGrid();
         }
-        _grid.Update(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
@@ -302,7 +306,6 @@ public class MenzobaraRiverScene(
             transformMatrix: _camera.GetViewMatrix(),
             sortMode: SpriteSortMode.BackToFront,
             effect: effect);
-        _grid.Draw(_spriteBatch, _camera.CameraBounds);
         _uiRoot.DrawCameraElements();
         _spriteBatch.End();
 

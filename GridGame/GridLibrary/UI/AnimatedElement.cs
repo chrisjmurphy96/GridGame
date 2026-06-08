@@ -44,12 +44,18 @@ public class AnimatedElement : UIElement
         return this;
     }
 
+    /// <summary>
+    /// Sets a one time trigger for when the animation reaches the last frame.
+    /// </summary>
     public AnimatedElement SetOnAnimationEnd(Action onAnimationEnd)
     {
         _onAnimationEnd = onAnimationEnd;
         return this;
     }
 
+    /// <summary>
+    /// Sets a one time trigger for when the frame at the index is reached
+    /// </summary>
     public AnimatedElement SetFrameTrigger(int frameIndex, Action onFrameReached)
     {
         _onFrameReached = onFrameReached;
@@ -71,12 +77,25 @@ public class AnimatedElement : UIElement
             _animation.CurrentFrameIndex == _onFrameIndex)
         {
             _onFrameTriggered = true;
-            _onFrameReached();
+            Action? onFrameReached = _onFrameReached;
+            _onFrameReached = null;
+            if (onFrameReached is not null)
+                onFrameReached();
         }
-        _animation.Update(gameTime);
-        SetTextureNoDefaults(_animation.CurrentFrame);
-        if (_animation.ReachedLoopEnd && _onAnimationEnd is not null)
-            _onAnimationEnd();
+        if (_animation.ReachedLoopEnd)
+        {
+            Stop();
+            Action? onAnimationEnd = _onAnimationEnd;
+            _onAnimationEnd = null;
+            if (onAnimationEnd is not null)
+                onAnimationEnd();
+            _animation.Reset();
+        }
+        else
+        {
+            _animation.Update(gameTime);
+            SetTextureNoDefaults(_animation.CurrentFrame);
+        }
 
         base.Update(gameTime);
     }

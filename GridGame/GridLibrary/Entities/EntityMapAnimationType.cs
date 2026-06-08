@@ -1,6 +1,6 @@
 namespace GridLibrary.Entities;
 
-public enum EntityAnimationType
+public enum EntityMapAnimationType
 {
     Idle,
     WalkLeft,

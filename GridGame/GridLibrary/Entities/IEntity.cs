@@ -9,7 +9,7 @@ public interface IEntity
     static string LdtkIdentifier { get; } = string.Empty;
     public string DisplayName { get; }
     public TextureRegion ActiveTexture { get; }
-    public Animation AttackAnimation { get; }
+    public string DodgeAnimationKey { get; set; }
     public EntityHealth Health { get; }
     public int Defense { get; }
     public int DodgeChance { get; }
@@ -21,6 +21,6 @@ public interface IEntity
     public IMove SelectedMove { get; set; }
     public List<IMove> Moves { get; }
 
-    public void SetAnimation(EntityAnimationType entityAnimationType);
+    public void SetAnimation(EntityMapAnimationType entityAnimationType);
     public void Update(GameTime game);
 }

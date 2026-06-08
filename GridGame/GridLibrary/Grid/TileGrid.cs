@@ -105,7 +105,7 @@ public class TileGrid : UIElement, IRouteableElement
         }
     }
 
-    public void Update(GameTime gameTime)
+    public override void Update(GameTime gameTime)
     {
         Cursor.Update(gameTime);
         foreach (GridTile gridTile in GridState.Instance.Tiles)
@@ -215,12 +215,10 @@ public class TileGrid : UIElement, IRouteableElement
                 origin: Vector2.Zero,
                 scale: scale,
                 effects: SpriteEffects.None,
-                layerDepth: LayerDepths.Tiles);
+                layerDepth: LayerDepth);
         }
         spriteBatch.DrawEnemyAttackPoints(EnemyAttackPoints, EnemyMoveOverlayTexture, Scalar);
         spriteBatch.Draw(GridState.Instance.Entities, Scalar, _debugFont);
         spriteBatch.Draw(Cursor);
-
-        base.Draw(spriteBatch, parentBounds);
     }
 }

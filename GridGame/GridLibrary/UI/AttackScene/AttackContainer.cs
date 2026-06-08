@@ -106,18 +106,18 @@ public class AttackContainer : UIElement, IRouteableElement
         _enemyAnimation
             .SetParent(this)
             .SetLayerDepth(LayerDepths.StaticUI - 0.05f)
-            .PadHorizontal(25f, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
+            .PadHorizontal(25, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
             .PadVertical(50, UIUnit.Percentage, UIVerticalPaddingOrientation.FromBottom)
-            .SetWidth(128 * 4 * 2, UIUnit.Pixels)
-            .SetHeight(128 * 4 * 2, UIUnit.Pixels);
+            .SetWidth(128 * 4, UIUnit.Pixels)
+            .SetHeight(128 * 4, UIUnit.Pixels);
         _friendlyAnimation
             .SetParent(this)
             .SetLayerDepth(LayerDepths.StaticUI - 0.05f)
-            .PadHorizontal(25f, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromRight)
+            .PadHorizontal(25, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromRight)
             .PadVertical(50, UIUnit.Percentage, UIVerticalPaddingOrientation.FromBottom)
             .SetSpriteEffects(SpriteEffects.FlipHorizontally)
-            .SetWidth(128 * 4 * 2, UIUnit.Pixels)
-            .SetHeight(128 * 4 * 2, UIUnit.Pixels);
+            .SetWidth(128 * 4, UIUnit.Pixels)
+            .SetHeight(128 * 4, UIUnit.Pixels);
     }
 
     /// <summary>
@@ -143,12 +143,19 @@ public class AttackContainer : UIElement, IRouteableElement
             throw new ArgumentException($"No friendly fire! IsFriendly: {attacker.IsFriendly}");
         if (attacker.IsFriendly)
         {
+            IEntity friendly = attacker;
+            IEntity enemy = attacked;
             Point friendlyPosition = GridState.Instance.PotentialMove ?? throw new ArgumentException("No potential move found");
             GridTile friendlyTile = GridState.Instance.Tiles[friendlyPosition];
             GridTile enemyTile = GridState.Instance.Tiles[cursorPosition];
-            SetFriendly(attacker, attacked, enemyTile);
-            SetEnemy(attacked, attacker, friendlyTile);
-            SetAnimationChain(_friendlyAnimation, _enemyAnimation);
+            SetFriendly(friendly, enemy, enemyTile);
+            SetEnemy(enemy, friendly, friendlyTile);
+            AttackResult friendlyAttackResult = EntityAttackSimulator.Simulate(friendly, enemy, friendlyTile.TileInfo);
+            AttackResult enemyAttackResult = EntityAttackSimulator.Simulate(enemy, friendly, enemyTile.TileInfo);
+            SetAnimationChain(
+                friendlyAttackResult, enemyAttackResult,
+                friendly, enemy,
+                _friendlyAnimation, _enemyAnimation);
 
             if (!_terrainTypeToTexture.TryGetValue(enemyTile.TileInfo.TileType, out TextureRegion? enemyTerrainTexture))
                 throw new ArgumentException("No terrain mapped for enemy position");
@@ -167,14 +174,71 @@ public class AttackContainer : UIElement, IRouteableElement
         }
     }
 
-    private static void SetAnimationChain(AnimatedElement attacker, AnimatedElement attacked)
+    private void SetAnimationChain(
+        AttackResult attackerResult, AttackResult attackedResult,
+        IEntity attacker, IEntity attacked,
+        AnimatedElement attackerElement, AnimatedElement attackedElement)
     {
-        attacked.ResetAnimation().Stop();
-        attacker.ResetAnimation().SetOnAnimationEnd(() =>
+        Animation attackAnimation = AnimationPool.Get(attacker.SelectedMove.RegularAnimationKey);
+        int attackFrameTrigger = attacker.SelectedMove.RegularContactFrame;
+        if (attackerResult.Crit)
         {
-            attacker.ResetAnimation().Stop();
-            attacked.Start();
-        }).Start();
+            attackAnimation = AnimationPool.Get(attacker.SelectedMove.CritAnimationKey);
+            attackFrameTrigger = attacker.SelectedMove.CritContactFrame;
+        }
+
+        // Just to set a default static frame.
+        Animation attackedStaticFrame = AnimationPool.Get(attacked.SelectedMove.RegularAnimationKey);
+        attackedElement.SetAnimation(attackedStaticFrame).ResetAnimation();
+
+        attackerElement
+            .SetAnimation(attackAnimation)
+            .ResetAnimation()
+            .SetFrameTrigger(attackFrameTrigger, () =>
+            {
+                Animation dodgeAnimation = AnimationPool.Get(attacked.DodgeAnimationKey);
+                if (!attackerResult.Hit)
+                    attackedElement.SetAnimation(dodgeAnimation).ResetAnimation().Start();
+                else
+                    attacked.Health.Subtract(attackerResult.Damage);
+            })
+            .SetOnAnimationEnd(() =>
+            {
+                if (attacked.Health.IsDead)
+                {
+                    // TODO: death animation?
+                    //Router.RouteTo(DefaultRoutes.Grid);
+                    return;
+                }
+                Animation attackAnimation = AnimationPool.Get(attacked.SelectedMove.RegularAnimationKey);
+                int attackFrameTrigger = attacked.SelectedMove.RegularContactFrame;
+                if (attackerResult.Crit)
+                {
+                    attackAnimation = AnimationPool.Get(attacked.SelectedMove.CritAnimationKey);
+                    attackFrameTrigger = attacked.SelectedMove.CritContactFrame;
+                }
+                attackedElement
+                    .SetAnimation(attackAnimation)
+                    .ResetAnimation()
+                    .SetFrameTrigger(attackFrameTrigger, () =>
+                    {
+                        Animation dodgeAnimation = AnimationPool.Get(attacker.DodgeAnimationKey);
+                        if (!attackedResult.Hit)
+                            attackerElement.SetAnimation(dodgeAnimation).ResetAnimation().Start();
+                        else
+                            attacker.Health.Subtract(attackedResult.Damage);
+                    })
+                    .SetOnAnimationEnd(() =>
+                    {
+                        if (attacker.Health.IsDead)
+                        {
+                            // TODO: death animation?
+                        }
+                        //Router.RouteTo(DefaultRoutes.Grid);
+                    })
+                    .Start();
+            })
+            .Start();
     }
 
     public AttackContainer SetEnemy(IEntity enemy, IEntity friendly, GridTile friendlyTile)
@@ -182,16 +246,6 @@ public class AttackContainer : UIElement, IRouteableElement
         _enemyNameBanner.SetText(enemy.DisplayName);
         _enemyHealthBar.SetEntity(enemy);
         _enemyAttackBanner.SetMove(enemy.SelectedMove);
-        _enemyStatBox.SetMove(enemy.SelectedMove);
-        _enemyAnimation
-            .SetAnimation(enemy.AttackAnimation)
-            .SetFrameTrigger(enemy.SelectedMove.ContactFrame, () =>
-            {
-                // TODO: lots of logic around crit/dodge animations, all that jazz
-                AttackResult attackResult = EntityAttackSimulator.Simulate(enemy, friendly, friendlyTile.TileInfo);
-                Debug.WriteLine(attackResult);
-                friendly.Health.Subtract(attackResult.Damage);
-            });
         return this;
     }
 
@@ -201,15 +255,6 @@ public class AttackContainer : UIElement, IRouteableElement
         _friendlyHealthBar.SetEntity(friendly);
         _friendlyAttackBanner.SetMove(friendly.SelectedMove);
         _friendlyStatBox.SetMove(friendly.SelectedMove);
-        _friendlyAnimation
-            .SetAnimation(friendly.AttackAnimation)
-            .SetFrameTrigger(friendly.SelectedMove.ContactFrame, () =>
-            {
-                // TODO: lots of logic around crit/dodge animations, all that jazz
-                AttackResult attackResult = EntityAttackSimulator.Simulate(friendly, enemy, enemyTile.TileInfo);
-                Debug.WriteLine(attackResult);
-                enemy.Health.Subtract(attackResult.Damage);
-            });
         return this;
     }
 

@@ -11,7 +11,7 @@
 	"iid": "56da3f80-21a0-11f1-a8a7-3732a4977434",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
-	"nextUid": 11,
+	"nextUid": 16,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "Free",
@@ -145,7 +145,90 @@
 			"limitBehavior": "MoveLastOne",
 			"pivotX": 0,
 			"pivotY": 0,
-			"fieldDefs": []
+			"fieldDefs": [
+				{
+					"identifier": "Moves",
+					"doc": null,
+					"__type": "String",
+					"uid": 13,
+					"type": "F_Text",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": {
+						"id": "V_String",
+						"params": [
+							"[{\n \"name\": \"Flame Tongue\",\n    \"damage\": 15,\n    \"hitChance\": 95,\n    \"critChance\": 5,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"gigoughRegularAttack\",\n    \"critAnimationKey\": \"gigoughRegularAttack\"\n}]"
+						]
+					},
+					"textLanguageMode": "LangJson",
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
+				},
+				{
+					"identifier": "DodgeAnimationKey",
+					"doc": null,
+					"__type": "String",
+					"uid": 15,
+					"type": "F_String",
+					"isArray": false,
+					"canBeNull": true,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": {
+						"id": "V_String",
+						"params": ["gigoughDodge"]
+					},
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
+				}
+			]
 		},
 		{
 			"identifier": "Goblin",
@@ -217,6 +300,88 @@
 					"allowedRefsEntityUid": null,
 					"allowedRefTags": [],
 					"tilesetUid": null
+				},
+				{
+					"identifier": "Moves",
+					"doc": null,
+					"__type": "String",
+					"uid": 12,
+					"type": "F_Text",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": {
+						"id": "V_String",
+						"params": [
+							"[{\n \"name\": \"Club\",\n    \"damage\": 8,\n    \"hitChance\": 65,\n    \"critChance\": 0,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"goblinRegularAttack\",\n    \"critAnimationKey\": \"goblinCritAttack\"\n}]"
+						]
+					},
+					"textLanguageMode": "LangJson",
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
+				},
+				{
+					"identifier": "DodgeAnimationKey",
+					"doc": null,
+					"__type": "String",
+					"uid": 14,
+					"type": "F_String",
+					"isArray": false,
+					"canBeNull": true,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": {
+						"id": "V_String",
+						"params": ["goblinDodge"]
+					},
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
 				}
 			]
 		}
@@ -242,8 +407,8 @@
 			}],
 			"savedSelections": [],
 			"cachedPixelData": {
-				"opaqueTiles": "1100000011000000010000000000000000000000000000000000000000000000",
-				"averageColors": "f7b4f69f757e658e0000000000000000f743f9d4347e34ad00000000000000003000f69f658e34ad000000000000000057836a97bc22b12c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+				"opaqueTiles": "1100000011001100010000000000011000001111000001101111000000000000",
+				"averageColors": "f7b4f69f757e658efb83fb9310001000f743f9d4347e34adfca3fca3000000003000f69f658e34adfc93fc930000000057836a97bc22b12cf759f77af77af56c3d4500000000b748fa33fa83fc93f56d3d45000000000000f933fa63fa73f759fc95fca4fca4fc95000000000000000000000000000000000000000000000000"
 			}
 		}
 	], "enums": [{ "identifier": "TileTypes", "uid": 4, "values": [
@@ -641,7 +806,10 @@
 							"height": 16,
 							"defUid": 5,
 							"px": [96,80],
-							"fieldInstances": [],
+							"fieldInstances": [
+								{ "__identifier": "Moves", "__type": "String", "__value": "[{\n \"name\": \"Flame Tongue\",\n    \"damage\": 15,\n    \"hitChance\": 95,\n    \"critChance\": 5,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"gigoughRegularAttack\",\n    \"critAnimationKey\": \"gigoughRegularAttack\"\n}]", "__tile": null, "defUid": 13, "realEditorValues": [] },
+								{ "__identifier": "DodgeAnimationKey", "__type": "String", "__value": "gigoughDodge", "__tile": null, "defUid": 15, "realEditorValues": [] }
+							],
 							"__worldX": 368,
 							"__worldY": -256
 						},
@@ -657,7 +825,11 @@
 							"height": 16,
 							"defUid": 8,
 							"px": [320,80],
-							"fieldInstances": [{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] }],
+							"fieldInstances": [
+								{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] },
+								{ "__identifier": "Moves", "__type": "String", "__value": "[{\n \"name\": \"Club\",\n    \"damage\": 8,\n    \"hitChance\": 65,\n    \"critChance\": 0,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"goblinRegularAttack\",\n    \"critAnimationKey\": \"goblinCritAttack\"\n}]", "__tile": null, "defUid": 12, "realEditorValues": [] },
+								{ "__identifier": "DodgeAnimationKey", "__type": "String", "__value": "goblinDodge", "__tile": null, "defUid": 14, "realEditorValues": [] }
+							],
 							"__worldX": 592,
 							"__worldY": -256
 						},
@@ -673,7 +845,11 @@
 							"height": 16,
 							"defUid": 8,
 							"px": [320,16],
-							"fieldInstances": [{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] }],
+							"fieldInstances": [
+								{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] },
+								{ "__identifier": "Moves", "__type": "String", "__value": "[{\n \"name\": \"Club\",\n    \"damage\": 8,\n    \"hitChance\": 65,\n    \"critChance\": 0,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"goblinRegularAttack\",\n    \"critAnimationKey\": \"goblinCritAttack\"\n}]", "__tile": null, "defUid": 12, "realEditorValues": [] },
+								{ "__identifier": "DodgeAnimationKey", "__type": "String", "__value": "goblinDodge", "__tile": null, "defUid": 14, "realEditorValues": [] }
+							],
 							"__worldX": 592,
 							"__worldY": -320
 						},
@@ -689,7 +865,16 @@
 							"height": 16,
 							"defUid": 8,
 							"px": [128,80],
-							"fieldInstances": [{ "__identifier": "StartingHealth", "__type": "Int", "__value": 60, "__tile": null, "defUid": 10, "realEditorValues": [{ "id": "V_Int", "params": [60] }] }],
+							"fieldInstances": [
+								{ "__identifier": "StartingHealth", "__type": "Int", "__value": 60, "__tile": null, "defUid": 10, "realEditorValues": [{ "id": "V_Int", "params": [60] }] },
+								{ "__identifier": "Moves", "__type": "String", "__value": "[{\n \"name\": \"Spiked Club\",\n    \"damage\": 12,\n    \"hitChance\": 75,\n    \"critChance\": 10,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"goblinRegularAttack\",\n    \"critAnimationKey\": \"goblinCritAttack\"\n}]", "__tile": null, "defUid": 12, "realEditorValues": [{
+									"id": "V_String",
+									"params": [
+										"[{\\n \"name\": \"Spiked Club\",\\n    \"damage\": 12,\\n    \"hitChance\": 75,\\n    \"critChance\": 10,\\n    \"range\": 1,\\n    \"regularContactFrame\": 2,\\n    \"critContactFrame\": 2,\\n    \"regularAnimationKey\": \"goblinRegularAttack\",\\n    \"critAnimationKey\": \"goblinCritAttack\"\\n}]"
+									]
+								}] },
+								{ "__identifier": "DodgeAnimationKey", "__type": "String", "__value": "goblinDodge", "__tile": null, "defUid": 14, "realEditorValues": [] }
+							],
 							"__worldX": 400,
 							"__worldY": -256
 						},
@@ -705,7 +890,11 @@
 							"height": 16,
 							"defUid": 8,
 							"px": [96,48],
-							"fieldInstances": [{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] }],
+							"fieldInstances": [
+								{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] },
+								{ "__identifier": "Moves", "__type": "String", "__value": "[{\n \"name\": \"Club\",\n    \"damage\": 8,\n    \"hitChance\": 65,\n    \"critChance\": 0,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"goblinRegularAttack\",\n    \"critAnimationKey\": \"goblinCritAttack\"\n}]", "__tile": null, "defUid": 12, "realEditorValues": [] },
+								{ "__identifier": "DodgeAnimationKey", "__type": "String", "__value": "goblinDodge", "__tile": null, "defUid": 14, "realEditorValues": [] }
+							],
 							"__worldX": 368,
 							"__worldY": -288
 						},
@@ -721,7 +910,11 @@
 							"height": 16,
 							"defUid": 8,
 							"px": [80,96],
-							"fieldInstances": [{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] }],
+							"fieldInstances": [
+								{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] },
+								{ "__identifier": "Moves", "__type": "String", "__value": "[{\n \"name\": \"Club\",\n    \"damage\": 8,\n    \"hitChance\": 65,\n    \"critChance\": 0,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"goblinRegularAttack\",\n    \"critAnimationKey\": \"goblinCritAttack\"\n}]", "__tile": null, "defUid": 12, "realEditorValues": [] },
+								{ "__identifier": "DodgeAnimationKey", "__type": "String", "__value": "goblinDodge", "__tile": null, "defUid": 14, "realEditorValues": [] }
+							],
 							"__worldX": 352,
 							"__worldY": -240
 						},
@@ -737,7 +930,11 @@
 							"height": 16,
 							"defUid": 8,
 							"px": [112,128],
-							"fieldInstances": [{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] }],
+							"fieldInstances": [
+								{ "__identifier": "StartingHealth", "__type": "Int", "__value": 50, "__tile": null, "defUid": 10, "realEditorValues": [] },
+								{ "__identifier": "Moves", "__type": "String", "__value": "[{\n \"name\": \"Club\",\n    \"damage\": 8,\n    \"hitChance\": 65,\n    \"critChance\": 0,\n    \"range\": 1,\n    \"regularContactFrame\": 2,\n    \"critContactFrame\": 2,\n    \"regularAnimationKey\": \"goblinRegularAttack\",\n    \"critAnimationKey\": \"goblinCritAttack\"\n}]", "__tile": null, "defUid": 12, "realEditorValues": [] },
+								{ "__identifier": "DodgeAnimationKey", "__type": "String", "__value": "goblinDodge", "__tile": null, "defUid": 14, "realEditorValues": [] }
+							],
 							"__worldX": 384,
 							"__worldY": -208
 						}
