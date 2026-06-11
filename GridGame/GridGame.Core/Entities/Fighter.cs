@@ -1,8 +1,7 @@
-using System.Collections.Generic;
-using GridGame.Core.AttackMoves;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 
 namespace GridGame.Core.Entities;
 

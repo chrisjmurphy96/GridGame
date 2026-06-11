@@ -63,37 +63,37 @@ public class MovementArrow : UIElement, IRouteableElement
     /// There's a lot of shared code here, possible some stuff could be moved into the cursor itself
     /// since both this and <see cref="TileGrid" /> reference it.
     /// </summary>
-    public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
+    public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
-        if (keyboardInfo.WasKeyJustPressed(Keys.Down) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Down, MOVE_INPUT_DELAY))
+        if (inputInfo.DownPressed() ||
+            inputInfo.DownHeld(MOVE_INPUT_DELAY))
         {
-            keyboardInfo.ResetKeyHold(Keys.Down);
+            inputInfo.ResetDownHold();
             MoveCursorDown();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Up) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Up, MOVE_INPUT_DELAY))
+        if (inputInfo.UpPressed() ||
+            inputInfo.UpHeld(MOVE_INPUT_DELAY))
         {
-            keyboardInfo.ResetKeyHold(Keys.Up);
+            inputInfo.ResetUpHold();
             MoveCursorUp();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Right) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Right, MOVE_INPUT_DELAY))
-        {   
-            keyboardInfo.ResetKeyHold(Keys.Right);
+        if (inputInfo.RightPressed() ||
+            inputInfo.RightHeld(MOVE_INPUT_DELAY))
+        {
+            inputInfo.ResetRightHold();
             MoveCursorRight();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Left) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Left, MOVE_INPUT_DELAY))
+        if (inputInfo.LeftPressed() ||
+            inputInfo.LeftHeld(MOVE_INPUT_DELAY))
         {
-            keyboardInfo.ResetKeyHold(Keys.Left);
+            inputInfo.ResetLeftHold();
             MoveCursorLeft();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Z))
+        if (inputInfo.SelectPressed())
         {
             CursorClick();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.X))
+        if (inputInfo.CancelPressed())
         {
             CancelCursorClick();
         }

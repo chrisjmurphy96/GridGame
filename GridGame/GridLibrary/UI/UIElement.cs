@@ -26,7 +26,7 @@ public class UIElement : IUIElement
     public UIValue Width { get; private set; } = new();
     public UIValue Height { get; private set; } = new();
     public TextureRegion? Texture { get; private set; }
-    public bool IsVisible { get; private set; } = true;
+    public virtual bool IsVisible { get; private set; } = true;
     public bool IsFocused => UIRoot.GetFocusedElement() == this;
     public float LayerDepth { get; private set; } = LayerDepths.StaticUI;
     public SpriteEffects SpriteEffects = SpriteEffects.None;
@@ -135,7 +135,7 @@ public class UIElement : IUIElement
             child.Update(gameTime);
     }
 
-    public virtual void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
+    public virtual void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
 
     }

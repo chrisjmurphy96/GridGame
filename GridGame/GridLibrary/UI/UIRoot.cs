@@ -21,7 +21,7 @@ public class UIRoot
     private readonly GraphicsDevice _graphicsDevice;
     private Viewport _viewport;
     private readonly SpriteBatch _spriteBatch;
-    private readonly KeyboardInfo _keyboardInfo;
+    private readonly InputInfo _inputInfo;
     private static readonly UIElement _cameraRoot = new();
     private static readonly UIElement _screenRoot = new();
     private static IUIElement? _focusedElement = null;
@@ -35,7 +35,7 @@ public class UIRoot
     /// </summary>
     private static bool _justSwitchedFocus = false;
 
-    public UIRoot(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, KeyboardInfo keyboardInfo)
+    public UIRoot(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, InputInfo inputInfo)
     {
         _graphicsDevice = graphicsDevice;
         Viewport viewport = graphicsDevice.Viewport;
@@ -44,7 +44,7 @@ public class UIRoot
             .SetWidth(viewport.Width, UIUnit.Pixels)
             .SetHeight(viewport.Height, UIUnit.Pixels);
         _spriteBatch = spriteBatch;
-        _keyboardInfo = keyboardInfo;
+        _inputInfo = inputInfo;
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class UIRoot
             _justSwitchedFocus = false;
         }
         else
-            _focusedElement?.HandleInput(gameTime, _keyboardInfo);
+            _focusedElement?.HandleInput(gameTime, _inputInfo);
         _cameraRoot.Update(gameTime);
         _screenRoot.Update(gameTime);
     }

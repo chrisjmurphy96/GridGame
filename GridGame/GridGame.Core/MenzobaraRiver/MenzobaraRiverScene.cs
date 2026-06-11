@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using GridGame.Core.AttackMoves;
 using GridGame.Core.Entities;
 using GridLibrary;
 using GridLibrary.Entities;
@@ -21,6 +15,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary.Audio;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace GridGame.Core.MenzobaraRiver;
 
@@ -32,6 +29,7 @@ public class MenzobaraRiverScene(
     LdtkImporter ldtkImporter,
     Camera camera,
     KeyboardInfo keyboardInfo,
+    InputInfo inputInfo,
     AssetManager assetManager,
     UIRoot uiFactory,
     TextureAtlasLoader atlasLoader) : Scene
@@ -43,6 +41,7 @@ public class MenzobaraRiverScene(
     private readonly LdtkImporter _ldtkImporter = ldtkImporter;
     private readonly Camera _camera = camera;
     private readonly KeyboardInfo _keyboardInfo = keyboardInfo;
+    private readonly InputInfo _inputInfo = inputInfo;
     private readonly AssetManager _assetManager = assetManager;
     private readonly UIRoot _uiRoot = uiFactory;
     private readonly TextureAtlasLoader _atlasLoader = atlasLoader;
@@ -166,7 +165,6 @@ public class MenzobaraRiverScene(
         ContextMenu contextMenu = new()
         {
             FocusTexture = placeholderAtlas.GetRegion("focus"),
-            KeyboardInfo = _keyboardInfo,
             Font = _font,
             Cursor = cursor
         };
@@ -290,10 +288,12 @@ public class MenzobaraRiverScene(
         // if (_keyboardInfo.WasKeyJustPressed(Keys.OemMinus) ||
         //     _keyboardInfo.WasKeyJustPressed(Keys.Subtract))
         //     _camera.ZoomOut();
-        if (_keyboardInfo.WasKeyJustPressed(Keys.G))
-        {
-            ToggleGrid();
-        }
+
+        // TODO: showing the grid can be a menu item. I don't think it's something you need to be able to quickly toggle
+        //if (_inputInfo.TogglePressed())
+        //{
+        //    ToggleGrid();
+        //}
     }
 
     public override void Draw(GameTime gameTime)

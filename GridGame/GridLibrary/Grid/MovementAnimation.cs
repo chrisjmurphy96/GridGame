@@ -39,7 +39,7 @@ public class MovementAnimation : UIElement, IRouteableElement
     /// with the "cancel" button, but I don't think it's the end
     /// of the world to make them wait. That's what FE seems to do.
     /// </summary>
-    public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
+    public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
         // No input, just game time updates
         _movementTimer += gameTime.ElapsedGameTime;

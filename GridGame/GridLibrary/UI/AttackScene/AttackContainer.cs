@@ -124,9 +124,9 @@ public class AttackContainer : UIElement, IRouteableElement
     /// This is just for debugging until the attack/animation logic is in place.
     /// It'll let us continue to navigate around the grid.
     /// </summary>
-    public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
+    public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
-        if (keyboardInfo.WasKeyJustPressed(Microsoft.Xna.Framework.Input.Keys.Z))
+        if (inputInfo.SelectPressed())
         {
             GridState.UnsetActiveEntity();
             Router.RouteTo(DefaultRoutes.Grid);
@@ -246,6 +246,7 @@ public class AttackContainer : UIElement, IRouteableElement
         _enemyNameBanner.SetText(enemy.DisplayName);
         _enemyHealthBar.SetEntity(enemy);
         _enemyAttackBanner.SetMove(enemy.SelectedMove);
+        _enemyStatBox.SetMove(enemy.SelectedMove);
         return this;
     }
 

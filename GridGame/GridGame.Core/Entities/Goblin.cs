@@ -1,4 +1,3 @@
-using GridGame.Core.AttackMoves;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using Microsoft.Xna.Framework;

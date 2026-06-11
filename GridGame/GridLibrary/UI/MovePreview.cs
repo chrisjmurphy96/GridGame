@@ -57,13 +57,13 @@ public class MovePreview : UIElement, IRouteableElement
         }
     }
 
-    public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
+    public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
         if (!IsVisible)
             return;
 
         Point cursorPosition = GridState.Instance.CursorPosition;
-        if (keyboardInfo.WasKeyJustPressed(Keys.Up))
+        if (inputInfo.UpPressed())
         {
             Point up = cursorPosition.Up();
             bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(up)?.IsFriendly) ?? false;
@@ -93,7 +93,7 @@ public class MovePreview : UIElement, IRouteableElement
                 }
             }
         }
-        else if (keyboardInfo.WasKeyJustPressed(Keys.Down))
+        else if (inputInfo.DownPressed())
         {
             Point down = cursorPosition.Down();
             bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(down)?.IsFriendly) ?? false;
@@ -123,7 +123,7 @@ public class MovePreview : UIElement, IRouteableElement
                 }
             }
         }
-        else if (keyboardInfo.WasKeyJustPressed(Keys.Right))
+        else if (inputInfo.RightPressed())
         {
             Point right = cursorPosition.Right();
             bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(right)?.IsFriendly) ?? false;
@@ -153,7 +153,7 @@ public class MovePreview : UIElement, IRouteableElement
                 }
             }
         }
-        else if (keyboardInfo.WasKeyJustPressed(Keys.Left))
+        else if (inputInfo.LeftPressed())
         {
             Point left = cursorPosition.Left();
             bool enemyPresent = !(GridState.Instance.Entities.GetValueOrDefault(left)?.IsFriendly) ?? false;
@@ -183,7 +183,7 @@ public class MovePreview : UIElement, IRouteableElement
                 }
             }
         }
-        else if (keyboardInfo.WasKeyJustPressed(Keys.Z))
+        else if (inputInfo.SelectPressed())
         {
             if (AttackOverlay.AttackPoints.Count is 0)
                 Router.RouteTo(DefaultRoutes.Grid);
@@ -191,7 +191,7 @@ public class MovePreview : UIElement, IRouteableElement
                 Router.RouteTo(DefaultRoutes.AttackContainer);
             AttackOverlay.Hide();
         }
-        else if (keyboardInfo.WasKeyJustPressed(Keys.X))
+        else if (inputInfo.CancelPressed())
         {
             AttackOverlay.Hide();
             Router.RouteTo(DefaultRoutes.ContextMenu);

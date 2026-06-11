@@ -28,11 +28,13 @@ public class TileGrid : UIElement, IRouteableElement
 
     private readonly SpriteFont? _debugFont;
 
-    private readonly static TimeSpan MOVE_DELAY = TimeSpan.FromMilliseconds(100);
+    private readonly static TimeSpan MOVE_INPUT_DELAY = TimeSpan.FromMilliseconds(100);
     public List<MoveOverlay> EnemyMoveOverlays { get; } = [];
     public HashSet<Point> EnemyAttackPoints { get; } = [];
     public EventHandler? Next { get; set; } = null;
     public EventHandler? Previous { get; set; } = null;
+
+    public override bool IsVisible => true;
     
     public TileGrid(
         TextureRegion gridOverlayTexture,
@@ -63,43 +65,43 @@ public class TileGrid : UIElement, IRouteableElement
         }
     }
 
-    public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
+    public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
         GridState.UnsetActiveEntity();
-        
-        if (keyboardInfo.WasKeyJustPressed(Keys.Down) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Down, MOVE_DELAY))
+
+        if (inputInfo.DownPressed() ||
+            inputInfo.DownHeld(MOVE_INPUT_DELAY))
         {
-            keyboardInfo.ResetKeyHold(Keys.Down);
+            inputInfo.ResetDownHold();
             MoveCursorDown();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Up) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Up, MOVE_DELAY))
+        if (inputInfo.UpPressed() ||
+            inputInfo.UpHeld(MOVE_INPUT_DELAY))
         {
-            keyboardInfo.ResetKeyHold(Keys.Up);
+            inputInfo.ResetUpHold();
             MoveCursorUp();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Right) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Right, MOVE_DELAY))
-        {   
-            keyboardInfo.ResetKeyHold(Keys.Right);
+        if (inputInfo.RightPressed() ||
+            inputInfo.RightHeld(MOVE_INPUT_DELAY))
+        {
+            inputInfo.ResetRightHold();
             MoveCursorRight();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Left) ||
-            keyboardInfo.IsKeyHeldDown(Keys.Left, MOVE_DELAY))
+        if (inputInfo.LeftPressed() ||
+            inputInfo.LeftHeld(MOVE_INPUT_DELAY))
         {
-            keyboardInfo.ResetKeyHold(Keys.Left);
+            inputInfo.ResetLeftHold();
             MoveCursorLeft();
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.Z))
+        if (inputInfo.SelectPressed())
         {
             CursorClick(gameTime);
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.X))
+        if (inputInfo.CancelPressed())
         {
             // I guess we could play a silly noise, but there's nothing to do?
         }
-        if (keyboardInfo.WasKeyJustPressed(Keys.O))
+        if (inputInfo.TogglePressed())
         {
             ToggleEnemyOverlay();
         }

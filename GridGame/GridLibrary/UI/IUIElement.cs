@@ -21,7 +21,7 @@ namespace GridLibrary.UI
 
         IUIElement AddChild(IUIElement child);
         void Draw(SpriteBatch spriteBatch, Rectangle parentBounds);
-        void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo);
+        void HandleInput(GameTime gameTime, InputInfo inputInfo);
         IUIElement PadHorizontal(float value, UIUnit unit, UIHorizontalPaddingOrientation orientation);
         IUIElement PadVertical(float value, UIUnit unit, UIVerticalPaddingOrientation orientation);
         IUIElement RemoveChild(IUIElement child);

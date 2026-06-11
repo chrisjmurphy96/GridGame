@@ -42,7 +42,6 @@ public class ContextMenu : UIElement, IRouteableElement
 {
     public required TextureRegion FocusTexture { get; init; }
     public required SpriteFont Font { get; init; }
-    public required KeyboardInfo KeyboardInfo { get; init; }
     public required Cursor Cursor { get; init; }
 
     private static IEntity? Performer => GridState.Instance.ActiveEntity?.entity;
@@ -86,23 +85,23 @@ public class ContextMenu : UIElement, IRouteableElement
         }
     }
 
-    public override void HandleInput(GameTime gameTime, KeyboardInfo keyboardInfo)
+    public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
-        if (KeyboardInfo.WasKeyJustPressed(Keys.Up))
+        if (inputInfo.UpPressed())
         {
             IndexUp();
         }
-        else if (KeyboardInfo.WasKeyJustPressed(Keys.Down))
+        else if (inputInfo.DownPressed())
         {
             IndexDown();
         }
-        else if (KeyboardInfo.WasKeyJustPressed(Keys.Z))
+        else if (inputInfo.SelectPressed())
         {
             if (Performer is null)
                 throw new InvalidOperationException();
             _menuItems[FocusIndex].Click();
         }
-        else if (keyboardInfo.WasKeyJustPressed(Keys.X))
+        else if (inputInfo.CancelPressed())
         {
             Router.RouteTo(DefaultRoutes.MovementArrow);
         }
