@@ -14,8 +14,6 @@ public class Core : Game
 
     protected SceneManager _sceneManager;
     private InputInfo _inputInfo;
-    //protected KeyboardInfo _keyboardInfo;
-    private GamePadInfo _gamePadInfo;
     private UIRoot _uiRoot;
 
 
@@ -66,8 +64,6 @@ public class Core : Game
         ServiceCollection.AddSingleton<UIRoot>();
         ServiceProvider serviceProvider = ServiceCollection.BuildServiceProvider();
         _sceneManager = serviceProvider.GetService<SceneManager>() ?? throw new Exception($"Failed to create {nameof(SceneManager)}");
-        //_keyboardInfo = serviceProvider.GetService<KeyboardInfo>() ?? throw new Exception($"Failed to create {nameof(KeyboardInfo)}");
-        //_gamePadInfo = serviceProvider.GetService<GamePadInfo>() ?? throw new Exception($"Failed to create {nameof(GamePadInfo)}");
         _inputInfo = serviceProvider.GetService<InputInfo>() ?? throw new Exception($"Failed to create {nameof(InputInfo)}");
         _uiRoot = serviceProvider.GetService<UIRoot>() ?? throw new Exception($"Failed to create {nameof(UIRoot)}");
         _sceneManager.ChangeScene<T>();
@@ -85,9 +81,7 @@ public class Core : Game
 
     protected override void Update(GameTime gameTime)
     {
-        // update keyboard first since scenes will use it
-        //_keyboardInfo.Update(gameTime);
-        //_gamePadInfo.Update(gameTime);
+        // update input first since scenes will use it
         _inputInfo.Update(gameTime);
         _sceneManager.Update(gameTime);
         _uiRoot.Update(gameTime);
