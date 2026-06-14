@@ -91,5 +91,6 @@ public class Animation
     {
         CurrentFrameIndex = 0;
         ReachedLoopEnd = false;
+        _elapsed = TimeSpan.Zero;
     }
 }

@@ -2,6 +2,8 @@
 
 public class DefaultRoutes
 {
+    public const string PlayerPhaseBanner = nameof(PlayerPhaseBanner);
+    public const string EnemyPhaseBanner = nameof(EnemyPhaseBanner);
     public const string Grid = nameof(Grid);
     public const string MovementArrow = nameof(MovementArrow);
     public const string MovementAnimation = nameof(MovementAnimation);

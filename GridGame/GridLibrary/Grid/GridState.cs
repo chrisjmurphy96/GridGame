@@ -37,6 +37,8 @@ public class GridState
     public (Point position, IEntity entity)? ActiveEntity { get; private set; } = null;
     [JsonIgnore]
     public Point? PotentialMove = null;
+    [JsonIgnore]
+    public Phase Phase = Phase.Player;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
