@@ -154,6 +154,7 @@ public class AttackContainer : UIElement, IRouteableElement
             AttackResult enemyAttackResult = EntityAttackSimulator.Simulate(enemy, friendly, enemyTile.TileInfo);
             SetAnimationChain(
                 friendlyAttackResult, enemyAttackResult,
+                friendlyPosition, cursorPosition,
                 friendly, enemy,
                 _friendlyAnimation, _enemyAnimation);
 
@@ -176,6 +177,7 @@ public class AttackContainer : UIElement, IRouteableElement
 
     private void SetAnimationChain(
         AttackResult attackerResult, AttackResult attackedResult,
+        Point attackerPosition, Point attackedPosition,
         IEntity attacker, IEntity attacked,
         AnimatedElement attackerElement, AnimatedElement attackedElement)
     {
@@ -208,6 +210,7 @@ public class AttackContainer : UIElement, IRouteableElement
                 {
                     // TODO: death animation?
                     //Router.RouteTo(DefaultRoutes.Grid);
+                    GridState.Instance.Entities.Remove(attackedPosition);
                     return;
                 }
                 Animation attackAnimation = AnimationPool.Get(attacked.SelectedMove.RegularAnimationKey);
@@ -232,6 +235,7 @@ public class AttackContainer : UIElement, IRouteableElement
                     {
                         if (attacker.Health.IsDead)
                         {
+                            GridState.Instance.Entities.Remove(attackerPosition);
                             // TODO: death animation?
                         }
                         //Router.RouteTo(DefaultRoutes.Grid);
