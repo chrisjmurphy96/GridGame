@@ -2,11 +2,11 @@ using GridLibrary.Routing;
 
 namespace GridLibrary.UI.ContextMenu;
 
-public class AttackContextMenuItem : IContextMenuItem
+public class AttackContextMenuItem : IMenuItem
 {
     public string Name => "Attack";
     public void Click()
     {
-        Router.RouteTo(DefaultRoutes.MovePreview);
+        Router.RouteWithHistory(DefaultRoutes.MovePreview);
     }
 }

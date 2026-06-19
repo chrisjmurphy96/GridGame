@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Input;
@@ -7,7 +5,8 @@ using GridLibrary.Routing;
 using GridLibrary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
 
 namespace GridLibrary.Grid;
 
@@ -63,6 +62,12 @@ public class TileGrid : UIElement, IRouteableElement
             GridState.Instance.CursorPosition = activeEntity.Value.position;
             GridState.UnsetActiveEntity();
         }
+    }
+
+    public void AfterInitialize()
+    {
+        // This is our "root" from which history will be built, so always clear it out
+        Router.ClearHistory();
     }
 
     public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
@@ -194,13 +199,17 @@ public class TileGrid : UIElement, IRouteableElement
     public void CursorClick(GameTime gameTime)
     {
         GridState.Instance.Entities.TryGetValue(GridState.Instance.CursorPosition, out IEntity? entity);
-        if (entity is null ||
-            !entity.IsPlayerControllable)
+        if (entity is null)
+        {
+            Router.RouteWithHistory(DefaultRoutes.MapMenu);
+            return;
+        }
+        else if (!entity.IsPlayerControllable)
         {
             return;
         }
         GridState.SetActiveEntity();
-        Router.RouteTo(DefaultRoutes.MovementArrow);
+        Router.RouteWithHistory(DefaultRoutes.MovementArrow);
     }
 
     public override void Draw(SpriteBatch spriteBatch, Rectangle parentBounds)

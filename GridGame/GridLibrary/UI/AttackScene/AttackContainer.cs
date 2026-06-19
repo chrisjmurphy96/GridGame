@@ -129,7 +129,7 @@ public class AttackContainer : UIElement, IRouteableElement
         if (inputInfo.SelectPressed())
         {
             GridState.UnsetActiveEntity();
-            Router.RouteTo(DefaultRoutes.Grid);
+            Router.RouteWithHistory(DefaultRoutes.Grid);
         }
     }
 
@@ -174,6 +174,8 @@ public class AttackContainer : UIElement, IRouteableElement
             // TODO: Need to set terrain, but state checks might be different
         }
     }
+
+    public void AfterInitialize() { }
 
     private void SetAnimationChain(
         AttackResult attackerResult, AttackResult attackedResult,

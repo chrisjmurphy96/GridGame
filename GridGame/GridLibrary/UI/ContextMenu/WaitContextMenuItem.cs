@@ -3,7 +3,7 @@ using GridLibrary.Routing;
 
 namespace GridLibrary.UI.ContextMenu;
 
-public class WaitContextMenuItem : IContextMenuItem
+public class WaitContextMenuItem : IMenuItem
 {
     public string Name => "Wait";
     public void Click()
@@ -11,6 +11,6 @@ public class WaitContextMenuItem : IContextMenuItem
         if (GridState.Instance.ActiveEntity is not null)
             GridState.Instance.ActiveEntity.Value.entity.HasMoved = true;
         GridState.UnsetActiveEntity();
-        Router.RouteTo(DefaultRoutes.Grid);
+        Router.RouteWithoutHistory(DefaultRoutes.Grid);
     }
 }

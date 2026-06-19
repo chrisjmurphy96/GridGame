@@ -45,7 +45,7 @@ public class ContextMenu : UIElement, IRouteableElement
     public required Cursor Cursor { get; init; }
 
     private static IEntity? Performer => GridState.Instance.ActiveEntity?.entity;
-    private List<IContextMenuItem> _menuItems = [];
+    private List<IMenuItem> _menuItems = [];
     public int FocusIndex { get; private set; } = 0;
     public bool PreviewingMove { get; private set; } = false;
 
@@ -85,6 +85,8 @@ public class ContextMenu : UIElement, IRouteableElement
         }
     }
 
+    public void AfterInitialize() { }
+
     public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
         if (inputInfo.UpPressed())
@@ -103,7 +105,7 @@ public class ContextMenu : UIElement, IRouteableElement
         }
         else if (inputInfo.CancelPressed())
         {
-            Router.RouteTo(DefaultRoutes.MovementArrow);
+            Router.Back();
         }
     }
 
@@ -135,7 +137,7 @@ public class ContextMenu : UIElement, IRouteableElement
         };
         for (int i = 0; i < _menuItems.Count; i++)
         {
-            IContextMenuItem menuItem = _menuItems[i];
+            IMenuItem menuItem = _menuItems[i];
             spriteBatch.DrawString(
                 Font,
                 menuItem.Name,

@@ -1,0 +1,18 @@
+{
+  "directory": "Images",
+  "fileName": "static-ui",
+  "regionNameToSourceRectangle": {
+    "mapMenu": {
+      "x": 0,
+      "y": 0,
+      "width": 32,
+      "height": 32
+    },
+    "focus": {
+      "x": 32,
+      "y": 0,
+      "width": 28,
+      "height": 1
+    }
+  }
+}

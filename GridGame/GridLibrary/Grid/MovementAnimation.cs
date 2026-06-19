@@ -34,6 +34,8 @@ public class MovementAnimation : UIElement, IRouteableElement
         _entity.IsVisible = false;
     }
 
+    public void AfterInitialize() { }
+
     /// <summary>
     /// I could allow the player to interrupt the move animation
     /// with the "cancel" button, but I don't think it's the end
@@ -50,7 +52,7 @@ public class MovementAnimation : UIElement, IRouteableElement
         }
         if (_nextTileIndex >= MovementState.Path.Count)
         {
-            Router.RouteTo(DefaultRoutes.ContextMenu);
+            Router.RouteWithHistory(DefaultRoutes.ContextMenu);
             return;
         }
         _movementProgress = (float)(_movementTimer.TotalSeconds / TILE_WALK_DELAY.TotalSeconds);

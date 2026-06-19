@@ -57,6 +57,8 @@ public class MovePreview : UIElement, IRouteableElement
         }
     }
 
+    public void AfterInitialize() { }
+
     public override void HandleInput(GameTime gameTime, InputInfo inputInfo)
     {
         if (!IsVisible)
@@ -186,15 +188,15 @@ public class MovePreview : UIElement, IRouteableElement
         else if (inputInfo.SelectPressed())
         {
             if (AttackOverlay.AttackPoints.Count is 0)
-                Router.RouteTo(DefaultRoutes.Grid);
+                Router.RouteWithHistory(DefaultRoutes.Grid);
             else
-                Router.RouteTo(DefaultRoutes.AttackContainer);
+                Router.RouteWithHistory(DefaultRoutes.AttackContainer);
             AttackOverlay.Hide();
         }
         else if (inputInfo.CancelPressed())
         {
             AttackOverlay.Hide();
-            Router.RouteTo(DefaultRoutes.ContextMenu);
+            Router.Back();
         }
     }
 

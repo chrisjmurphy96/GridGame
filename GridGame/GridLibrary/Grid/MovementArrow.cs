@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Input;
@@ -8,7 +5,9 @@ using GridLibrary.Routing;
 using GridLibrary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GridLibrary.Grid;
 
@@ -43,6 +42,7 @@ public class MovementArrow : UIElement, IRouteableElement
         (Point position, IEntity entity) = 
             GridState.Instance.ActiveEntity ?? throw new ArgumentException($"No {nameof(GridState.Instance.ActiveEntity)}");
         _cursor.Show();
+        entity.IsVisible = true;
 
         StartPosition = position;
         Path = [StartPosition];
@@ -51,6 +51,8 @@ public class MovementArrow : UIElement, IRouteableElement
         _moveOverlay.Show(_maxMovement, entity.SelectedMove.Range, StartPosition, _tiles, GridState.Instance.Entities);
         Update(GridState.Instance.CursorPosition, _moveOverlay.MovementPoints);
     }
+
+    public void AfterInitialize() { }
 
     public void Cancel()
     {
@@ -95,7 +97,7 @@ public class MovementArrow : UIElement, IRouteableElement
         }
         if (inputInfo.CancelPressed())
         {
-            CancelCursorClick();
+            Router.Back();
         }
         // TODO: some keys should probably still work even when
         // something isn't focused. How do I make an exception for these?
@@ -176,12 +178,7 @@ public class MovementArrow : UIElement, IRouteableElement
         if (!_moveOverlay.MovementPoints.Contains(GridState.Instance.CursorPosition))
             return;
         MovementState.Path = Path;
-        Router.RouteTo(DefaultRoutes.MovementAnimation);
-    }
-
-    public void CancelCursorClick()
-    {
-        Router.RouteTo(DefaultRoutes.Grid);
+        Router.RouteWithoutHistory(DefaultRoutes.MovementAnimation);
     }
 
     private static class ArrowDirection

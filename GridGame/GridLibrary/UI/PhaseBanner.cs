@@ -20,6 +20,8 @@ public class PhaseBanner : UIElement, IRouteableElement
         _elapsed = TimeSpan.Zero;
     }
 
+    public void AfterInitialize() { }
+
     public PhaseBanner SetFont(SpriteFont spriteFont)
     {
         _font = spriteFont;
@@ -53,7 +55,7 @@ public class PhaseBanner : UIElement, IRouteableElement
         _elapsed += gameTime.ElapsedGameTime;
         if (_elapsed >= _transition)
         {
-            Router.RouteTo(DefaultRoutes.Grid);
+            Router.RouteWithHistory(DefaultRoutes.Grid);
         }
     }
 

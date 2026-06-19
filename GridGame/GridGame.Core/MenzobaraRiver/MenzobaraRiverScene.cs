@@ -11,10 +11,12 @@ using GridLibrary.Scenes;
 using GridLibrary.UI;
 using GridLibrary.UI.AttackScene;
 using GridLibrary.UI.ContextMenu;
+using GridLibrary.UI.MapMenu;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary.Audio;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -29,7 +31,6 @@ public class MenzobaraRiverScene(
     LdtkImporter ldtkImporter,
     Camera camera,
     KeyboardInfo keyboardInfo,
-    InputInfo inputInfo,
     AssetManager assetManager,
     UIRoot uiFactory,
     TextureAtlasLoader atlasLoader) : Scene
@@ -41,12 +42,10 @@ public class MenzobaraRiverScene(
     private readonly LdtkImporter _ldtkImporter = ldtkImporter;
     private readonly Camera _camera = camera;
     private readonly KeyboardInfo _keyboardInfo = keyboardInfo;
-    private readonly InputInfo _inputInfo = inputInfo;
     private readonly AssetManager _assetManager = assetManager;
     private readonly UIRoot _uiRoot = uiFactory;
     private readonly TextureAtlasLoader _atlasLoader = atlasLoader;
     private readonly FrameCounter _frameCounter = new();
-    private TileGrid _grid;
     private SpriteFont _font;
 
     private bool _showGrid = false;
@@ -188,7 +187,7 @@ public class MenzobaraRiverScene(
 
         GridTileList tiles = GridTileList.FromLevel(ldtkProjectFile, levelName, atlas, enumNameToTileInfo);
         GridState.Instance.Tiles = tiles;
-        _grid = new TileGrid(
+        TileGrid tileGrid = new TileGrid(
             placeholderAtlas.GetRegion("gridOverlay"),
             scalar: 4,
             cursor,
@@ -196,17 +195,17 @@ public class MenzobaraRiverScene(
             moveOverlay,
             placeholderAtlas.GetRegion("enemyMoveOverlay"),
             debugFont: null);
-        _grid.SetLayerDepth(LayerDepths.Tiles);
-        UIRoot.RootToCamera(_grid);
-        UIRoot.Focus(_grid);
-        Router.AddDefaultRoutes(_grid, movementArrow, contextMenu, movePreview);
+        tileGrid.SetLayerDepth(LayerDepths.Tiles);
+        UIRoot.RootToCamera(tileGrid);
+        //UIRoot.Focus(tileGrid);
+        Router.AddDefaultRoutes(tileGrid, movementArrow, contextMenu, movePreview);
         
         _camera.CameraBounds = new()
         {
             X = 0,
             Y = 0,
-            Width = level.LayerWidth * _grid.Scalar,
-            Height = level.LayerHeight * _grid.Scalar
+            Width = level.LayerWidth * tileGrid.Scalar,
+            Height = level.LayerHeight * tileGrid.Scalar
         };
 
         TextureAtlas attackSceneTerrainAtlas = _atlasLoader.Load<MenzobaraRiverScene>("Images", "attack-scene-terrain-definition.json");
@@ -264,8 +263,54 @@ public class MenzobaraRiverScene(
             .SetOpacity(0.85f);
         UIRoot.RootToScreen(characterInfo);
 
-        stopwatch.Stop();
+        TextureAtlas phaseBannersAtlas = _atlasLoader.Load<MenzobaraRiverScene>("Images", "phase-banners.json");
+        PhaseBanner playerPhaseBanner = new();
+        playerPhaseBanner
+            .SetFont(_font)
+            .SetText("Player Phase")
+            .SetTransitionTimeSpan(TimeSpan.FromSeconds(3))
+            .SetTextureNoDefaults(phaseBannersAtlas.GetRegion("playerPhase"))
+            .PadHorizontal(0, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
+            .SetWidth(100, UIUnit.Percentage)
+            .PadVertical(40, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
+            .SetHeight(20, UIUnit.Percentage)
+            .SetOpacity(0.85f)
+            .SetIsVisible(true);
+        Router.RegisterRoute(DefaultRoutes.PlayerPhaseBanner, playerPhaseBanner);
+        UIRoot.RootToScreen(playerPhaseBanner);
 
+        PhaseBanner enemyPhaseBanner = new();
+        enemyPhaseBanner
+            .SetFont(_font)
+            .SetText("Enemy Phase")
+            .SetTransitionTimeSpan(TimeSpan.FromSeconds(3))
+            .SetTextureNoDefaults(phaseBannersAtlas.GetRegion("enemyPhase"))
+            .PadHorizontal(0, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
+            .SetWidth(100, UIUnit.Percentage)
+            .PadVertical(40, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
+            .SetHeight(20, UIUnit.Percentage)
+            .SetOpacity(0.85f)
+            .SetIsVisible(false);
+        Router.RegisterRoute(DefaultRoutes.EnemyPhaseBanner, enemyPhaseBanner);
+        UIRoot.RootToScreen(enemyPhaseBanner);
+
+        TextureAtlas staticUIAtlas = _atlasLoader.Load<MenzobaraRiverScene>("Images", "static-ui.json");
+        MapMenu mapMenu = new();
+        mapMenu
+            .SetFont(_font)
+            .SetFocusTexture(staticUIAtlas.GetRegion("focus"))
+            .SetTexture(staticUIAtlas.GetRegion("mapMenu"))
+            .SetOpacity(0.85f)
+            .SetIsVisible(false)
+            .PadHorizontal(45, UIUnit.Percentage, UIHorizontalPaddingOrientation.FromLeft)
+            .PadVertical(42, UIUnit.Percentage, UIVerticalPaddingOrientation.FromTop)
+            .SetHeight(32 * 4, UIUnit.Pixels)
+            .SetWidth(32 * 4, UIUnit.Pixels);
+        Router.RegisterRoute(DefaultRoutes.MapMenu, mapMenu);
+        UIRoot.RootToScreen(mapMenu);
+
+        stopwatch.Stop();
+        Router.RouteWithoutHistory(DefaultRoutes.PlayerPhaseBanner);
 
         Debug.WriteLine(stopwatch.Elapsed);
     }

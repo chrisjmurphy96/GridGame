@@ -101,6 +101,21 @@
 /processorParam:TextureFormat=Color
 /build:Images/goblin-attack-placeholder.png
 
+#begin Images/phase-banners.json
+/copy:Images/phase-banners.json
+
+#begin Images/phase-banners.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/phase-banners.png
+
 #begin Images/placeholder-atlas-definition.json
 /copy:Images/placeholder-atlas-definition.json
 
@@ -115,4 +130,19 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Images/placeholder-atlas.png
+
+#begin Images/static-ui.json
+/copy:Images/static-ui.json
+
+#begin Images/static-ui.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/static-ui.png
 
