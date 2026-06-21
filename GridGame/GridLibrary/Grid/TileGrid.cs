@@ -74,11 +74,20 @@ public class TileGrid : UIElement, IRouteableElement
             while (decision is not null)
             {
                 decision.Entity.HasMoved = true;
+                if (decision.Position is not null)
+                {
+                    GridState.Instance.Entities.Remove(decision.PreviousPosition);
+                    GridState.Instance.Entities.Add(decision.Position.Value, decision.Entity);
+                }
                 decision = EnemyDecisionMaker.GetNextDecision();
             }
             if (decision is null)
             {
                 GridState.Instance.Phase = Phase.Player;
+                foreach ((_, IEntity entity) in GridState.Instance.Entities)
+                {
+                    entity.HasMoved = false;
+                }
                 Router.RouteWithHistory(DefaultRoutes.Grid);
             }
         }

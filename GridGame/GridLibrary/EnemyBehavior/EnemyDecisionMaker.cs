@@ -1,7 +1,6 @@
 ﻿using GridLibrary.Entities;
 using GridLibrary.Grid;
 using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,6 +19,7 @@ public static class EnemyDecisionMaker
     /// - Units that can ignore blocking terrain (!CanWalk)
     /// - Unreachable islands (for example a square of walkable terrain surrounded by unwalkable terrain)
     /// - Units that can heal (themselves or others)
+    /// - Doesn't prioritize standing on tiles giving advantages such as Avoid, Defence, or Healing
     /// </summary>
     public static Decision? GetNextDecision()
     {
@@ -34,7 +34,8 @@ public static class EnemyDecisionMaker
         int highScore = -1;
         Decision decision = new()
         {
-            Entity = entity
+            Entity = entity,
+            PreviousPosition = position
         };
         List<KeyValuePair<Point, IEntity>> friendlyEntities = [.. entities.Where(pointToEntity => pointToEntity.Value.IsFriendly)];
         for (int moveIndex = 0; moveIndex < entity.Moves.Count; moveIndex++)
@@ -66,14 +67,17 @@ public static class EnemyDecisionMaker
                     int distance = walkingPoint.DistanceTo(attackPoint);
                     bool inRange = distance <= move.Range;
                     bool betterDistanceScore = distance > distanceScore;
-                    if (inRange && distance > distanceScore)
+                    bool isOccupied = GridState.Instance.Entities.ContainsKey(walkingPoint);
+                    if (inRange && betterDistanceScore && !isOccupied)
                     {
                         distanceScore = distance;
                         decision.Position = walkingPoint;
                     }
                 }
+                // if we fail to find a valid position, skip to the next option.
                 if (decision.Position is null)
-                    throw new ArgumentException("Failed to find valid position to make attack from");
+                    continue;
+                    
                 int potentialDamageTaken = 0;
                 int toAttackRange = toAttack.SelectedMove.Range;
                 if (decision.Position.Value.DistanceTo(attackPoint) <= toAttackRange)
@@ -120,16 +124,24 @@ public static class EnemyDecisionMaker
             completeWalkableSpace.UnionWith([friendlyEntityPosition]);
 
             List<Point>? path = Dijkstra.FindShortestPath(position, friendlyEntityPosition, MAX_WALK_DISTANCE, completeWalkableSpace);
-            if (path is not null)
+            if (path?.Count > 0)
             {
-                int distance = path.Count;
                 // should this be +1?
-                Point potentialPosition = path[entity.MovementRange];
-                bool isOccupied = entities.ContainsKey(potentialPosition);
-                if (distance < minDistance && !isOccupied)
+                if (path.Count > entity.MovementRange)
+                    path = [.. path.Take(entity.MovementRange)];
+
+                for (int pathIndex = path.Count - 1; pathIndex > 0; pathIndex--)
                 {
-                    minDistance = distance;
-                    decision.Position = potentialPosition;
+                    Point potentialPosition = path[pathIndex];
+                    int distance = pathIndex + 1;
+                    bool isOccupied = entities.ContainsKey(potentialPosition);
+                    if (distance < minDistance && !isOccupied)
+                    {
+                        minDistance = distance;
+                        decision.Position = potentialPosition;
+                        // short circuit once we find the first open position in the path
+                        break;
+                    }
                 }
             }
 
