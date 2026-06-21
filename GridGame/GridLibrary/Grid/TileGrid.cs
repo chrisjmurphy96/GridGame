@@ -1,3 +1,4 @@
+using GridLibrary.EnemyBehavior;
 using GridLibrary.Entities;
 using GridLibrary.Graphics;
 using GridLibrary.Input;
@@ -55,12 +56,31 @@ public class TileGrid : UIElement, IRouteableElement
 
     public void Initialize()
     {
-        (Point position, IEntity _)? activeEntity = GridState.Instance.ActiveEntity;
-        if (activeEntity is not null)
+        if (GridState.Instance.Phase is Phase.Player)
         {
-            Cursor.SetPosition(activeEntity.Value.position);
-            GridState.Instance.CursorPosition = activeEntity.Value.position;
-            GridState.UnsetActiveEntity();
+            Cursor.Show();
+            (Point position, IEntity _)? activeEntity = GridState.Instance.ActiveEntity;
+            if (activeEntity is not null)
+            {
+                Cursor.SetPosition(activeEntity.Value.position);
+                GridState.Instance.CursorPosition = activeEntity.Value.position;
+                GridState.UnsetActiveEntity();
+            }
+        }
+        else if (GridState.Instance.Phase is Phase.Enemy)
+        {
+            Cursor.Hide();
+            Decision? decision = EnemyDecisionMaker.GetNextDecision();
+            while (decision is not null)
+            {
+                decision.Entity.HasMoved = true;
+                decision = EnemyDecisionMaker.GetNextDecision();
+            }
+            if (decision is null)
+            {
+                GridState.Instance.Phase = Phase.Player;
+                Router.RouteWithHistory(DefaultRoutes.Grid);
+            }
         }
     }
 
@@ -204,7 +224,7 @@ public class TileGrid : UIElement, IRouteableElement
             Router.RouteWithHistory(DefaultRoutes.MapMenu);
             return;
         }
-        else if (!entity.IsPlayerControllable)
+        else if (!entity.IsPlayerControllable || entity.HasMoved)
         {
             return;
         }

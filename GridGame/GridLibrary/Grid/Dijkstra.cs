@@ -14,7 +14,7 @@ namespace GridLibrary.Grid;
 /// </summary>
 public static class Dijkstra
 {
-    private const int MAX_ITERATIONS = 200;
+    private const int MAX_ITERATIONS = 2000;
 
     public static List<Point>? FindShortestPath(
         Point start,
@@ -159,6 +159,10 @@ public static class Dijkstra
         return [.. exploredSpace.Select(node => node.Key)];
     }
 
+    /// <summary>
+    /// This doesn't currently handle a something like a bow in modern fire emblem or Dark Deity, where there's a gap between the player and the attackable space.
+    /// That said, I'm not sure I want to restrict units in that fashion anyways.
+    /// </summary>
     public static HashSet<Point> GetAttackable(int attackRange, HashSet<Point> walkablePoints, GridTileList gridTiles)
     {
         if (attackRange is 0)
