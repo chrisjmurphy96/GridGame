@@ -4,7 +4,6 @@ using GridLibrary.Input;
 using GridLibrary.Routing;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -191,6 +190,8 @@ public class MovePreview : UIElement, IRouteableElement
                 Router.RouteWithHistory(DefaultRoutes.Grid);
             else
                 Router.RouteWithHistory(DefaultRoutes.AttackContainer);
+            if (Performer is not null)
+                Performer.HasMoved = true;
             AttackOverlay.Hide();
         }
         else if (inputInfo.CancelPressed())
