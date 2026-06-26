@@ -36,7 +36,7 @@ public static class EnemyDecisionMaker
         GridTileList gridTiles = GridState.Instance.Tiles;
         HashSet<Point> currentWalkableSpace = Dijkstra.GetWalkable(position, currentEntity.MovementRange, gridTiles, entities, forEnemy: true);
         // Try to attack first
-        int highScore = -1;
+        int highScore = int.MinValue;
         Decision decision = new()
         {
             Entity = currentEntity,
@@ -96,7 +96,7 @@ public static class EnemyDecisionMaker
                 }
 
                 // don't let damage taken stop us from attacking, make sure our score stays at least 0
-                localScore = MathHelper.Max(0, localScore - potentialDamageTaken);
+                localScore = localScore - potentialDamageTaken;
                 localScore *= 10;
                 bool isCurrentSpace = localBestPosition == position;
                 if (isCurrentSpace)
@@ -133,6 +133,7 @@ public static class EnemyDecisionMaker
         // this should let us short circuit pretty often I think.
         // Do we consider how much damage we take back still?
         PriorityQueue<(Point friendlyPosition, IEntity friendlyEntity), int> queue = new();
+        highScore = int.MinValue;
         foreach((Point toAttackPosition, IEntity toAttack) in friendlyEntities)
         {
             for (int moveIndex = 0; moveIndex < currentEntity.Moves.Count; moveIndex++)
@@ -176,7 +177,7 @@ public static class EnemyDecisionMaker
 
                 Point? closestPoint = null;
                 int bestDistanceToTarget = int.MaxValue;
-                HashSet<Point> fullWalkableSpaceHashSet = fullWalkableSpace.ToHashSet();
+                HashSet<Point> fullWalkableSpaceHashSet = [.. fullWalkableSpace];
                 foreach (Point walkablePoint in currentWalkableSpace)
                 {
                     if (entities.ContainsKey(walkablePoint))
@@ -186,10 +187,14 @@ public static class EnemyDecisionMaker
                     {
                         bestDistanceToTarget = currentDistance;
                         closestPoint = walkablePoint;
+                        Debug.WriteLine($"Current best distance (out of range): {closestPoint}, Best distance to target: {bestDistanceToTarget}");
                     }
                 }
                 if (closestPoint is null)
                     continue;
+                // Weight the distance a bit. This might result in some suboptimal moves, but
+                // I think it's worth the tradeoff of keeping the game moving in these more extreme distance scenarios.
+                localScore -= bestDistanceToTarget;
 
                 int potentialDamageTaken = 0;
                 int toAttackRange = toAttack.SelectedMove.Range;
@@ -198,8 +203,7 @@ public static class EnemyDecisionMaker
                     potentialDamageTaken = toAttack.SelectedMove.Damage - currentEntity.Defense;
                 }
 
-                // don't let damage taken stop us from attacking, make sure our score stays at least 0
-                localScore = MathHelper.Max(0, localScore - potentialDamageTaken);
+                localScore = localScore - potentialDamageTaken;
                 localScore *= 10;
                 bool isCurrentSpace = localBestPosition == position;
                 if (isCurrentSpace)
@@ -210,11 +214,10 @@ public static class EnemyDecisionMaker
                     decision.Position = closestPoint;
                     Debug.WriteLine($"Current best (out of range): {decision.Position}, High score: {highScore}");
                 }
-
-                if (decision.AttackPosition is not null)
-                    return decision;
             }
         }
+        if (decision.Position is not null)
+            return decision;
 
         // Check for attacks we can make if we leave our current walkable area
         //HashSet<Point> maxWalkable = Dijkstra.GetWalkable(position, MAX_WALK_DISTANCE, gridTiles, entities, forEnemy: true);
