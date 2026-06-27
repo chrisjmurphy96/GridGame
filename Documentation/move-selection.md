@@ -39,3 +39,11 @@ After selecting where to move, fire emblem
     - hide the MoveOverlay and MovementArrow
     - move the character to the end of the movement arrow
     - Show the valid attack squares based on currently equipped weapon/spell (new AttackOverlay UIElement?)
+
+### Pathfinding notes
+
+This is an expensive process, so it has to be managed properly. The two effective toggles I've found
+are `MAX_ITERATIONS` in `Dijkstra.cs`, and `MAX_WALK_DISTANCE` in `EnemyDecisionMaker.cs`.
+`MAX_ITERATIONS` is the more important of the two since it directly controls how much time we spend calculating the path.
+`MAX_WALK_DISTANCE` can actually go pretty high and be just fine, since Dijkstra's algorithm uses a priority queue to
+explore the available space, we're quite likely to find a pretty decent path.

@@ -15,7 +15,7 @@ public static class EnemyDecisionMaker
     /// Number of steps we search down for determining movement (when attacks aren't possible).
     /// This can be tweaked, but every increase is very expensive.
     /// </summary>
-    private const int MAX_WALK_DISTANCE = 40;
+    private const int MAX_WALK_DISTANCE = 100;
 
     /// <summary>
     /// This doesn't account for a number of things at the moment. Here's an (incomplete) list:
@@ -196,7 +196,8 @@ public static class EnemyDecisionMaker
                 IEnumerable<Point> moveCandidates = positionToScore.Where(p => p.Value == distanceScore).Select(p => p.Key);
                 Point? closestPoint = null;
                 Point localBestPosition = moveCandidates.First();
-                int bestDistanceToTarget = int.MaxValue;
+                int shortestPathToTarget = int.MaxValue;
+                int shortestDistance = int.MaxValue;
                 foreach (Point moveCandidate in moveCandidates)
                 {
                     foreach (Point walkablePoint in currentWalkableSpace)
@@ -205,12 +206,22 @@ public static class EnemyDecisionMaker
                         if (entities.ContainsKey(walkablePoint) && !isCurrentSpaceInner)
                             continue;
                         // Doing this in a loop is the single most expensive operation. The easiest performance toggle is MAX_WALK_DISTANCE.
-                        int currentDistance = Dijkstra.FindShortestPath(walkablePoint, moveCandidate, MAX_WALK_DISTANCE, fullWalkableSpaceHashSet)?.Count ?? int.MaxValue;
-                        if (currentDistance < bestDistanceToTarget)
+                        int currentShortestPath = Dijkstra.FindShortestPath(walkablePoint, moveCandidate, MAX_WALK_DISTANCE, fullWalkableSpaceHashSet)?.Count ?? int.MaxValue;
+                        if (currentShortestPath < shortestPathToTarget)
                         {
-                            bestDistanceToTarget = currentDistance;
+                            shortestPathToTarget = currentShortestPath;
                             closestPoint = walkablePoint;
                             localBestPosition = moveCandidate;
+                        }
+                        int currentShortestDistance = walkablePoint.DistanceTo(moveCandidate);
+                        if (currentShortestDistance < shortestDistance)
+                        {
+                            shortestDistance = currentShortestDistance;
+                            if (shortestPathToTarget == int.MaxValue)
+                            {
+                                closestPoint = walkablePoint;
+                                localBestPosition = moveCandidate;
+                            }
                         }
                     }
                 }
@@ -218,7 +229,7 @@ public static class EnemyDecisionMaker
                     continue;
                 // Weight the distance a bit. This might result in some suboptimal moves, but
                 // I think it's worth the tradeoff of keeping the game moving in these more extreme distance scenarios.
-                localScore -= bestDistanceToTarget;
+                localScore -= shortestPathToTarget;
 
                 int potentialDamageTaken = 0;
                 int toAttackRange = toAttack.SelectedMove.Range;

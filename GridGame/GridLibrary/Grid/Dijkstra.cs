@@ -14,7 +14,7 @@ namespace GridLibrary.Grid;
 /// </summary>
 public static class Dijkstra
 {
-    private const int MAX_ITERATIONS = 2000;
+    private const int MAX_ITERATIONS = 500;
 
     public static List<Point>? FindShortestPath(
         Point start,
@@ -24,7 +24,7 @@ public static class Dijkstra
     {
         int distance = start.DistanceTo(end);
         if (distance > maxMovement)
-            throw new InvalidMoveException(start, end);
+            return null;
         Dictionary<Point, SearchNode> exploredSpace = new()
         {
             { start, new SearchNode { LowestCostNeighbor = start, StepsToReach = 0 } }
@@ -68,6 +68,7 @@ public static class Dijkstra
                     _searchQueue.Enqueue(neighbor, neighborDistanceToEnd);
                 }
             }
+            iterations++;
         }
 
         // safely return if we don't find a solution.
@@ -112,8 +113,7 @@ public static class Dijkstra
         PriorityQueue<Point, int> _searchQueue = new();
         _searchQueue.Enqueue(start, 0);
 
-        int iterations = 0;
-        while (_searchQueue.Count > 0 && iterations < MAX_ITERATIONS)
+        while (_searchQueue.Count > 0)
         {
             Point nextPoint = _searchQueue.Dequeue();
             ReachableNode currentNode = exploredSpace[nextPoint];
@@ -196,8 +196,7 @@ public static class Dijkstra
         PriorityQueue<Point, int> _searchQueue = new();
         _searchQueue.Enqueue(start, 0);
 
-        int iterations = 0;
-        while (_searchQueue.Count > 0 && iterations < MAX_ITERATIONS)
+        while (_searchQueue.Count > 0)
         {
             Point nextPoint = _searchQueue.Dequeue();
             ReachableNode currentNode = exploredSpace[nextPoint];
