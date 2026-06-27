@@ -10,13 +10,12 @@ namespace GridLibrary.EnemyBehavior;
 public static class EnemyDecisionMaker
 {
     private const int IN_RANGE_MODIFIER = 10000;
-    private const int KILL_MODIFIER = 500;
-    private const int DEATH_MODIFIER = 250;
+    private const int KILL_MODIFIER = 100000;
     /// <summary>
-    /// Number of steps we search down for determining movement (when attacks aren't possible)
+    /// Number of steps we search down for determining movement (when attacks aren't possible).
+    /// This can be tweaked, but every increase is very expensive.
     /// </summary>
-    private const int MAX_WALK_DISTANCE = 100;
-    private const int NO_CONTACT_MODIFIER = 20;
+    private const int MAX_WALK_DISTANCE = 40;
 
     /// <summary>
     /// This doesn't account for a number of things at the moment. Here's an (incomplete) list:
@@ -45,6 +44,8 @@ public static class EnemyDecisionMaker
         bool cannotMove = currentWalkableSpace.Count is 1;
         if (cannotMove)
             return decision;
+        Stopwatch attackStopwatch = new();
+        attackStopwatch.Start();
         for (int moveIndex = 0; moveIndex < currentEntity.Moves.Count; moveIndex++)
         {
             IMove move = currentEntity.Moves[moveIndex];
@@ -112,6 +113,9 @@ public static class EnemyDecisionMaker
         if (decision.AttackPosition is not null)
             return decision;
 
+        attackStopwatch.Stop();
+
+
         // Create flood of walkable space to find other attack options if we leave our current walking range
         List<Point> fullWalkableSpace = [];
         Dictionary<Point, IEntity> friendlyEntities = [];
@@ -126,11 +130,11 @@ public static class EnemyDecisionMaker
                     fullWalkableSpace.Add(point);
             }
         }
+
         // Perhaps we can save some cycles by pre-computing the optimal target to go for in terms of damage,
         // and then inspect if we can reach them in that order. Since checking expected damage is pretty cheap and fast,
         // this should let us short circuit pretty often I think.
         // Do we consider how much damage we take back still?
-        PriorityQueue<(Point friendlyPosition, IEntity friendlyEntity), int> queue = new();
         highScore = int.MinValue;
         HashSet<Point> fullWalkableSpaceHashSet = [.. fullWalkableSpace];
         foreach ((Point toAttackPosition, IEntity toAttack) in friendlyEntities)
@@ -152,6 +156,8 @@ public static class EnemyDecisionMaker
 
                 // Attempt to attack from as far away as possible. This should generally
                 // make the unit attack from a safer position.
+                Stopwatch attackPointStopwatch = new();
+                attackPointStopwatch.Start();
                 int distanceScore = int.MinValue;
                 Dictionary<Point, int> positionToScore = [];
                 foreach (Point walkingPoint in fullWalkableSpace)
@@ -198,6 +204,7 @@ public static class EnemyDecisionMaker
                         bool isCurrentSpaceInner = walkablePoint == position;
                         if (entities.ContainsKey(walkablePoint) && !isCurrentSpaceInner)
                             continue;
+                        // Doing this in a loop is the single most expensive operation. The easiest performance toggle is MAX_WALK_DISTANCE.
                         int currentDistance = Dijkstra.FindShortestPath(walkablePoint, moveCandidate, MAX_WALK_DISTANCE, fullWalkableSpaceHashSet)?.Count ?? int.MaxValue;
                         if (currentDistance < bestDistanceToTarget)
                         {
@@ -215,10 +222,16 @@ public static class EnemyDecisionMaker
 
                 int potentialDamageTaken = 0;
                 int toAttackRange = toAttack.SelectedMove.Range;
-                if (localBestPosition.DistanceTo(toAttackPosition) <= toAttackRange)
+                if (localBestPosition.DistanceTo(toAttackPosition) <= move.Range)
                 {
-                    potentialDamageTaken = toAttack.SelectedMove.Damage - currentEntity.Defense;
+                    int potentialDamageDealt = move.Damage - toAttack.Defense;
+                    localScore += potentialDamageDealt;
+                    localScore += IN_RANGE_MODIFIER;
+                    if (potentialDamageDealt >= toAttack.Health.CurrentHealth)
+                        localScore += KILL_MODIFIER;
                 }
+                // Always pretend we'll get hit back
+                potentialDamageTaken = toAttack.SelectedMove.Damage - currentEntity.Defense;
 
                 localScore = localScore - potentialDamageTaken;
                 localScore *= 10;
@@ -232,8 +245,6 @@ public static class EnemyDecisionMaker
                 }
             }
         }
-        if (decision.Position is not null)
-            return decision;
         
         return decision;
     }
